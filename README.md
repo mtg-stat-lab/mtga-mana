@@ -1,6 +1,8 @@
 # mtga-mana
 Mana calculator
 
+## Instructions
+
 ### Running the app
 
 Create the virtual environment
