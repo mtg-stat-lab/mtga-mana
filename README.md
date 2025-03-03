@@ -1,0 +1,2 @@
+# mtga-mana
+Mana calculator
