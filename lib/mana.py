@@ -147,6 +147,7 @@ def _best_single_color_to_add(hand: list[Spell | Mana | None],
 def run_simulation(spells_dict: dict[str, int],
                    mana_dict: dict[str, int],
                    total_deck_size: int = 40,
+                   initial_hand_size: int = 7,
                    draws: int = 10,
                    simulations: int = 100_000,
                    seed: int | None = None) -> pd.DataFrame:
@@ -179,7 +180,7 @@ def run_simulation(spells_dict: dict[str, int],
     for _ in range(simulations):
         deck.shuffle()
         for turn in range(draws):
-            hand_size = 7 + turn
+            hand_size = initial_hand_size + turn
             hand = deck.draw_top_n(hand_size)
             dead_count = _count_dead_spells(hand)
             dead_counts_per_turn[turn].append(dead_count)
