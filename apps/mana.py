@@ -4,7 +4,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from flask import Flask, render_template, request, jsonify
 import json
-from lib.mana import run_simulation, create_altair_charts
+from lib.mana import run_simulation, create_altair_charts, CANONICAL_COLORS
+import numpy as np
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -28,8 +30,8 @@ def simulate():
         spells_dict = json.loads(data['spells_json'])
         mana_dict = json.loads(data['mana_json'])
 
-        # Modified run: returns two dataframes
-        df_summary, df_distribution = run_simulation(
+        # Modified run: returns df_summary, df_distribution, zero_dead_runs_count
+        df_summary, df_distribution, zero_dead_runs_count = run_simulation(
             spells_dict,
             mana_dict,
             total_deck_size=deck_size,
@@ -39,17 +41,62 @@ def simulate():
             initial_hand_size=hand_size
         )
 
+        # Create the Vega-Lite chart
         chart = create_altair_charts(df_summary, df_distribution)
-        
-        # Return the Vega-Lite specification
         chart_spec = chart.to_dict()
-        return jsonify({'chart_spec': chart_spec})
+
+        # 1) Percent of turns with 0 dead spells
+        total_turns = (draws + 1) * simulations
+        zero_dead_rows = df_distribution[df_distribution['dead_spells'] == 0]
+        num_zero_dead = zero_dead_rows['frequency'].sum()
+        pct_turns_zero_dead = num_zero_dead / total_turns
+
+        # 2) Percent of runs with 0 dead spells
+        pct_runs_zero_dead = zero_dead_runs_count / simulations
+
+        # 3) Expected number of dead spells per turn
+        df_distribution['weighted_dead'] = df_distribution['dead_spells'] * df_distribution['frequency']
+        total_dead_spells = df_distribution['weighted_dead'].sum()
+        expected_dead_per_turn = total_dead_spells / total_turns
+
+        # 4) Most desired pip color
+        color_fractions = {}
+        for c in CANONICAL_COLORS:
+            frac_sum = df_summary[f"pct_optimal_{c}"].sum()
+            color_fractions[c] = frac_sum / (draws + 1)
+        most_desired_color = max(color_fractions, key=color_fractions.get)
+
+        # 5) Least desired pip color (restricted to those used in spells)
+        used_spell_colors = set()
+        for cost_str in spells_dict.keys():
+            for ch in cost_str:
+                used_spell_colors.add(ch)
+        used_spell_colors = used_spell_colors.intersection(CANONICAL_COLORS)
+
+        if used_spell_colors:
+            least_desired_color = min(used_spell_colors, key=lambda c: color_fractions[c])
+        else:
+            least_desired_color = "N/A"
+
+        stats = {
+            "pct_turns_zero_dead": pct_turns_zero_dead,
+            "pct_runs_zero_dead": pct_runs_zero_dead,
+            "expected_dead_per_turn": expected_dead_per_turn,
+            "most_desired_color": most_desired_color,
+            "least_desired_color": least_desired_color
+        }
+
+        return jsonify({
+            'chart_spec': chart_spec,
+            'stats': stats
+        })
+
     except Exception as e:
         print("Error in /simulate:", e)
         return jsonify({'error': str(e)}), 500
 
 
 if __name__ == '__main__':
-    default_port = 5001 # 5000 being used on my mac by something
+    default_port = 5001  # Use 5001 by default
     port = int(os.environ.get('PORT', default_port))
     app.run(host='0.0.0.0', port=port)

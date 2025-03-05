@@ -50,10 +50,25 @@
         }
 
         .result-container {
-            width: 60%;
+            width: 80%;
             padding-left: 20px;
             min-height: 300px;
             /* Give some height so spinner area is visible */
+        }
+
+        /* Side-by-side container for table (left) and chart (right) */
+        .result-split {
+            display: flex;
+            gap: 20px;
+        }
+
+        #summary-table {
+            flex: 1;
+            max-width: 300px;
+        }
+
+        #chart-result {
+            flex: 2;
         }
 
         input,
@@ -210,7 +225,7 @@
   "UB": 1,
   "WU": 1
 }
-        </textarea>
+                </textarea>
 
                 <label for="mana_json">Mana (JSON):
                     <span class="tooltip"
@@ -226,12 +241,17 @@
   "WU": 1,
   "WUBRG": 1
 }
-        </textarea>
+                </textarea>
             </form>
         </div>
+
         <div class="result-container">
-            <div id="chart-result">
-                <!-- The simulation chart will appear here. While waiting, a spinner and text are shown. -->
+            <!-- We now have a split layout for the summary table (left) and chart (right). -->
+            <div class="result-split">
+                <div id="summary-table"></div>
+                <div id="chart-result">
+                    <!-- The simulation chart will appear here. While waiting, a spinner and text are shown. -->
+                </div>
             </div>
         </div>
     </div>
@@ -239,19 +259,21 @@
     <script>
         function runSimulation() {
             const form = document.getElementById('simulation-form');
-            const resultContainer = document.getElementById('chart-result');
+            const chartDiv = document.getElementById('chart-result');
+            const summaryTableDiv = document.getElementById('summary-table');
 
-            // Show spinner and waiting text in the chart area
-            resultContainer.innerHTML = '<div class="spinner"></div> Running simulation, please wait...';
+            // Show spinner in the chart area
+            chartDiv.innerHTML = '<div class="spinner"></div> Running simulation, please wait...';
+            summaryTableDiv.innerHTML = ''; // clear old table
 
-            // Collect form data into a JSON object.
+            // Collect form data into an object
             const formData = new FormData(form);
             const data = {};
             formData.forEach((value, key) => {
                 data[key] = value;
             });
 
-            // Post the form data to our /simulate endpoint.
+            // Post to /simulate
             fetch('/simulate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -260,24 +282,56 @@
                 .then(response => response.json())
                 .then(json => {
                     if (json.error) {
-                        resultContainer.innerHTML = 'Error: ' + json.error;
+                        chartDiv.innerHTML = 'Error: ' + json.error;
                     } else {
-                        // Embed the chart using the returned Vega-Lite spec.
+                        // Build the stats table
+                        const stats = json.stats;
+                        let tableHTML = `
+                            <table border="1" cellpadding="6" style="border-collapse: collapse;">
+                              <tr>
+                                <th>Statistic</th>
+                                <th>Value</th>
+                              </tr>
+                              <tr>
+                                <td>% of turns with 0 dead spells</td>
+                                <td>${(stats.pct_turns_zero_dead * 100).toFixed(2)}%</td>
+                              </tr>
+                              <tr>
+                                <td>% of runs with 0 dead spells</td>
+                                <td>${(stats.pct_runs_zero_dead * 100).toFixed(2)}%</td>
+                              </tr>
+                              <tr>
+                                <td>Expected dead spells per turn</td>
+                                <td>${stats.expected_dead_per_turn.toFixed(2)}</td>
+                              </tr>
+                              <tr>
+                                <td>Most desired pip color</td>
+                                <td>${stats.most_desired_color}</td>
+                              </tr>
+                              <tr>
+                                <td>Least desired pip color</td>
+                                <td>${stats.least_desired_color}</td>
+                              </tr>
+                            </table>
+                        `;
+                        summaryTableDiv.innerHTML = tableHTML;
+
+                        // Embed the Vega-Lite chart
                         vegaEmbed('#chart-result', json.chart_spec);
                     }
                 })
                 .catch(error => {
-                    resultContainer.innerHTML = 'Error: ' + error;
+                    chartDiv.innerHTML = 'Error: ' + error;
                 });
         }
 
-        // Listen for form submissions (e.g. when pressing Enter).
+        // Listen for form submission
         document.getElementById('simulation-form').addEventListener('submit', function (e) {
             e.preventDefault();
             runSimulation();
         });
 
-        // Listen for clicks on the header Run Simulation button.
+        // Listen for the header Run Simulation button
         document.getElementById('runSimulationHeader').addEventListener('click', runSimulation);
     </script>
 </body>

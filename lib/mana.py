@@ -111,37 +111,56 @@ def run_simulation(spells_dict,
                    draws=10,
                    simulations=100_000,
                    seed=None):
+    """
+    Runs 'simulations' number of trials, each trial simulating draws from the deck
+    up to 'draws' times (turns). Returns:
+        - df_summary: stats per turn
+        - df_distribution: distribution of dead_spells counts per turn
+        - zero_dead_runs_count: how many entire runs had 0 dead spells at every turn
+    """
     if seed is not None:
         random.seed(seed)
 
     deck = build_deck_from_dicts(spells_dict, mana_dict, total_deck_size)
 
-    # We'll track results for turn=0..draws (inclusive)
     dead_counts_per_turn = [[] for _ in range(draws + 1)]
     best_color_counts = [Counter() for _ in range(draws + 1)]
-    extended_colors = CANONICAL_COLORS + ["none"]
+    zero_dead_runs_count = 0
 
+    # Simulate
     for _ in range(simulations):
         deck.shuffle()
+        run_has_no_dead_spells = True
+
         for turn in range(draws + 1):
             hand_size = initial_hand_size + turn
             hand = deck.draw_top_n(hand_size)
             dead_count = _count_dead_spells(hand)
             dead_counts_per_turn[turn].append(dead_count)
 
+            if dead_count > 0:
+                run_has_no_dead_spells = False
+
             best_color = _best_single_color_to_add(hand, CANONICAL_COLORS)
             best_color_counts[turn][best_color] += 1
 
+        if run_has_no_dead_spells:
+            zero_dead_runs_count += 1
+
     # Build df_summary
     rows_summary = []
+    extended_colors = CANONICAL_COLORS + ["none"]
+
     for turn in range(draws + 1):
         dead_array = np.array(dead_counts_per_turn[turn])
         p_dead = float((dead_array >= 1).mean())
         turn_lbl = "start" if turn == 0 else str(turn)
 
         total_sims = float(simulations)
-        color_fracs = {color: best_color_counts[turn][color] / total_sims
-                       for color in extended_colors}
+        color_fracs = {
+            color: best_color_counts[turn][color] / total_sims
+            for color in extended_colors
+        }
 
         row = {
             "turn": turn,
@@ -168,7 +187,7 @@ def run_simulation(spells_dict,
 
     df_distribution = pd.DataFrame(distribution_rows)
 
-    return df_summary, df_distribution
+    return df_summary, df_distribution, zero_dead_runs_count
 
 
 def create_altair_charts(df_summary, df_distribution):
@@ -185,13 +204,10 @@ def create_altair_charts(df_summary, df_distribution):
     else:
         max_dead = 0
 
-    # Build the domain for dead spells bars (only for > 0) in ascending order so the legend displays 1 at the top.
+    # Build the domain for dead spells bars (excluding 0) in ascending order.
     dead_domain = list(range(1, max_dead + 1))
 
-    # Build the distribution chart:
-    # 1. Aggregate the total simulation count for each draw step over the full data.
-    # 2. Calculate "percent" as frequency / total_simulations.
-    # 3. Filter out rows where dead_spells == 0.
+    # Distribution chart
     distribution_chart = (
         alt.Chart(df_distribution)
         .transform_joinaggregate(
@@ -213,8 +229,9 @@ def create_altair_charts(df_summary, df_distribution):
                     axis=alt.Axis(format='%')),
             color=alt.Color("dead_spells:O",
                             title="Dead spells",
-                            scale=alt.Scale(domain=dead_domain, scheme="magma", reverse=False)
-                           ),
+                            scale=alt.Scale(domain=dead_domain,
+                                            scheme="magma",
+                                            reverse=False)),
             order=alt.Order("dead_spells:Q", sort="descending")
         )
         .properties(
@@ -224,7 +241,7 @@ def create_altair_charts(df_summary, df_distribution):
         )
     )
 
-    # Bottom chart: percent time each color is optimal.
+    # Bottom chart: fraction of times each color is 'best' to add
     df_colordist = df_summary.copy()
     rename_map = {f"pct_optimal_{c}": c for c in CANONICAL_COLORS}
     df_colordist.rename(columns=rename_map, inplace=True)
@@ -248,17 +265,16 @@ def create_altair_charts(df_summary, df_distribution):
                                 domain=CANONICAL_COLORS,
                                 range=CANONICAL_COLOR_VALUES
                             ),
-                            legend=alt.Legend(title="Mana")
-                           )
+                            legend=alt.Legend(title="Mana"))
         )
         .properties(
             width=plot_width,
             height=plot_height,
-            title="Percent of simluations where you most want an extra pip of a given color"
+            title="Percent of simulations where an extra pip of each color is optimal"
         )
     )
 
-    # Concatenate the two charts vertically and resolve scales.
+    # Concatenate vertically
     combined_chart = alt.vconcat(distribution_chart, bottom_chart)
     combined_chart = combined_chart.resolve_scale(color="independent", x="shared")
 
