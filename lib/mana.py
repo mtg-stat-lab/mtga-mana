@@ -173,90 +173,58 @@ def run_simulation(spells_dict,
 
 def create_altair_charts(df_summary, df_distribution):
     plot_width = 600
-    plot_height = 200
+    plot_height = 300
 
-    # Figure out the max turn
+    # Determine maximum turn and set x-axis order.
     max_turn = int(df_summary["turn"].max()) if not df_summary.empty else 0
-
-    # We'll define the domain for the x-axis to force the correct order
     turn_sort = ["start"] + [str(i) for i in range(1, max_turn + 1)]
 
-    # 1) Probability of ≥1 dead spell
-    prob_chart = (
-        alt.Chart(df_summary)
-        .mark_area(interpolate="monotone", opacity=0.3, color="red")
-        .encode(
-            x=alt.X(
-                "turn_label:N",  # Use nominal
-                scale=alt.Scale(domain=turn_sort),  # Force the order
-                title="Draw step"
-            ),
-            y=alt.Y(
-                "p_dead:Q",
-                title="Probability of ≥1 dead spell",
-                axis=alt.Axis(format="%"),
-                scale=alt.Scale(domain=[0, 1])
-            )
-        )
-        .properties(
-            width=plot_width,
-            height=plot_height,
-            title="Probability of having one or more dead spells"
-        )
-    )
+    # Compute the maximum dead spells from the full distribution data.
+    if not df_distribution.empty:
+        max_dead = int(df_distribution["dead_spells"].max())
+    else:
+        max_dead = 0
 
-    # Add average probability annotation
-    avg_prob = df_summary["p_dead"].mean() if not df_summary.empty else 0
-    avg_label = f"Avg: {avg_prob * 100:.1f}%"
-    last_label = str(max_turn) if max_turn > 0 else "start"
+    # Build the domain for dead spells bars (only for > 0).
+    dead_domain = list(range(max_dead, 0, -1))
 
-    text_annot = alt.Chart(pd.DataFrame({
-        "turn_label": [last_label],
-        "p_dead": [0.95],
-        "label": [avg_label]
-    })).mark_text(
-        align="right",
-        baseline="top",
-        fontWeight="bold",
-        fontSize=14,
-        dx=-5
-    ).encode(
-        x="turn_label:N",
-        y="p_dead:Q",
-        text="label:N"
-    )
-
-    prob_chart = prob_chart + text_annot
-
-    # 2) Stacked bar distribution of dead spells
+    # Build the distribution chart:
+    # 1. Aggregate the total simulation count for each draw step over the full data.
+    # 2. Calculate "percent" as frequency / total_simulations.
+    # 3. Filter out rows where dead_spells == 0.
     distribution_chart = (
         alt.Chart(df_distribution)
+        .transform_joinaggregate(
+            total_simulations='sum(frequency)',
+            groupby=['turn_label']
+        )
+        .transform_calculate(
+            percent='datum.frequency / datum.total_simulations'
+        )
+        .transform_filter("datum.dead_spells > 0")
         .mark_bar()
         .encode(
-            x=alt.X(
-                "turn_label:N",
-                scale=alt.Scale(domain=turn_sort),
-                title="Draw step"
-            ),
-            y=alt.Y(
-                "frequency:Q",
-                title="Number of simulations"
-            ),
-            color=alt.Color(
-                "dead_spells:N",
-                title="Dead Spells",
-                scale=alt.Scale(scheme="magma")
-            ),
-            order=alt.Order("dead_spells:Q", sort="ascending")
+            x=alt.X("turn_label:N",
+                    scale=alt.Scale(domain=turn_sort),
+                    title="Draw step"),
+            y=alt.Y("percent:Q",
+                    title="Percent of simulations",
+                    scale=alt.Scale(domain=[0, 1]),
+                    axis=alt.Axis(format='%')),
+            color=alt.Color("dead_spells:O",
+                            title="Dead spells",
+                            scale=alt.Scale(domain=dead_domain, scheme="magma", reverse=True)
+                           ),
+            order=alt.Order("dead_spells:Q", sort="descending")
         )
         .properties(
             width=plot_width,
             height=plot_height,
-            title="Distribution of Dead Spells (Stacked)"
+            title="Percent of simulations with a number of dead spells",
         )
     )
 
-    # 3) Bottom chart: percent time each color is optimal
+    # Bottom chart: percent time each color is optimal.
     df_colordist = df_summary.copy()
     rename_map = {f"pct_optimal_{c}": c for c in CANONICAL_COLORS}
     df_colordist.rename(columns=rename_map, inplace=True)
@@ -269,36 +237,29 @@ def create_altair_charts(df_summary, df_distribution):
         )
         .mark_line()
         .encode(
-            x=alt.X(
-                "turn_label:N",
-                scale=alt.Scale(domain=turn_sort),
-                title="Draw step"
-            ),
-            y=alt.Y(
-                "pct:Q",
-                title="Percent of the time",
-                axis=alt.Axis(format="%")
-            ),
-            color=alt.Color(
-                "color_type:N",
-                scale=alt.Scale(
-                    domain=CANONICAL_COLORS,
-                    range=CANONICAL_COLOR_VALUES
-                ),
-                legend=alt.Legend(title="Mana")
-            )
+            x=alt.X("turn_label:N",
+                    scale=alt.Scale(domain=turn_sort),
+                    title="Draw step"),
+            y=alt.Y("pct:Q",
+                    title="Percent of simulations",
+                    axis=alt.Axis(format="%")),
+            color=alt.Color("color_type:N",
+                            scale=alt.Scale(
+                                domain=CANONICAL_COLORS,
+                                range=CANONICAL_COLOR_VALUES
+                            ),
+                            legend=alt.Legend(title="Mana")
+                           )
         )
         .properties(
             width=plot_width,
             height=plot_height,
-            title="Percent of time you'll wish you had an extra pip of a given color"
+            title="Percent of simluations where you most want an extra pip of a given color"
         )
     )
 
-    # Concatenate vertically, share the color scale, no need to share x because we forced a domain
-    combined_chart = alt.vconcat(prob_chart, distribution_chart, bottom_chart)
-    # Usually, for nominal data, we don't strictly need "resolve_scale(x='shared')"
-    # but including it won't hurt:
+    # Concatenate the two charts vertically and resolve scales.
+    combined_chart = alt.vconcat(distribution_chart, bottom_chart)
     combined_chart = combined_chart.resolve_scale(color="independent", x="shared")
 
     return combined_chart

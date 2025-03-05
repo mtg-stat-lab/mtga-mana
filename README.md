@@ -43,6 +43,9 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 
 ### TODO
 
+"Dead spells in hand"
+"Mana pip most needed"
+
 * Compute some summary statistics and display them in a table at the top of the charts
   -- percent of turns with 0 dead spells
   -- percent of runs with 0 dead spells
