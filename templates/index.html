@@ -51,30 +51,106 @@
             font-style: italic;
             color: #555;
         }
+
+        /* Tooltip styling */
+        .tooltip {
+            position: relative;
+            cursor: help;
+            color: blue;
+            font-weight: bold;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            /* Adjust as needed */
+            left: 0;
+            /* Left-align the tooltip */
+            background-color: #333;
+            color: #fff;
+            padding: 5px;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease-in-out;
+            z-index: 10;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+
+        /* Documentation styling */
+        .documentation {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
     </style>
 </head>
 
 <body>
     <h1>MTG "Got Pips" Mana Simulator</h1>
+
+    <!-- Overall Summary of the App -->
+    <div class="documentation">
+        <h2>Methodology</h2>
+        <p>
+            This simulator models a Magic: The Gathering scenario where your deck contains a mix of spells and mana
+            cards.
+            For each simulation:
+        </p>
+        </p>
+        <ul>
+            <li>The deck is shuffled, then cards are drawn over several turns.</li>
+            <li>The app evaluates your hand to determine "dead" spells.
+            <li>A spell is considered "dead" if you don't have the mana color pips in hand to cast it.</li>
+            <li>The app determines which extra color mana pip—if added—would most reduce your "dead" spells.</li>
+        </ul>
+        <p>
+            Running many simulations lets us estimate probabilities and averages that are then visualized.
+            Note that we aren't keeping track of uncolored mana requirements or other special card abilities.
+        </p>
+    </div>
+
     <div class="container">
         <div class="form-container">
             <form id="simulation-form">
-                <label for="deck_size">Deck Size:</label>
+                <label for="deck_size">Deck Size:
+                    <span class="tooltip"
+                        data-tooltip="Total number of cards in your deck, including spells, mana, and filler cards.">?</span>
+                </label>
                 <input type="number" id="deck_size" name="deck_size" value="40" required>
 
-                <label for="hand_size">Initial Hand Size:</label>
+                <label for="hand_size">Initial Hand Size:
+                    <span class="tooltip" data-tooltip="Number of cards you start with in your opening hand.">?</span>
+                </label>
                 <input type="number" id="hand_size" name="hand_size" value="7" required>
 
-                <label for="draws">Number of Draw Steps:</label>
+                <label for="draws">Number of Draw Steps:
+                    <span class="tooltip"
+                        data-tooltip="Number of turns to simulate; each turn you draw one extra card.">?</span>
+                </label>
                 <input type="number" id="draws" name="draws" value="10" required>
 
-                <label for="simulations">Number of Simulations:</label>
+                <label for="simulations">Number of Simulations:
+                    <span class="tooltip"
+                        data-tooltip="The number of iterations for the simulation (higher numbers yield more reliable estimates).">?</span>
+                </label>
                 <input type="number" id="simulations" name="simulations" value="1000" required>
 
-                <label for="seed">Random Seed:</label>
+                <label for="seed">Random Seed:
+                    <span class="tooltip" data-tooltip="Seed value to ensure reproducible simulation results.">?</span>
+                </label>
                 <input type="number" id="seed" name="seed" value="42" required>
 
-                <label for="spells_json">Spells (JSON):</label>
+                <label for="spells_json">Spells (JSON):
+                    <span class="tooltip"
+                        data-tooltip="JSON object mapping spell costs (e.g. 'U', 'UB') to the number of spells in your deck.">?</span>
+                </label>
                 <textarea id="spells_json" name="spells_json">
 {
     "U": 6,
@@ -86,7 +162,10 @@
 }
                 </textarea>
 
-                <label for="mana_json">Mana (JSON):</label>
+                <label for="mana_json">Mana (JSON):
+                    <span class="tooltip"
+                        data-tooltip="JSON object mapping mana types (e.g. 'U', 'WUBRG') to the number of mana cards in your deck.">?</span>
+                </label>
                 <textarea id="mana_json" name="mana_json">
 {
     "U": 5,
@@ -106,6 +185,20 @@
         <div class="result-container">
             <div id="chart-result">
                 <!-- The simulation chart will appear here -->
+            </div>
+            <!-- Explanation of the chart -->
+            <div class="documentation">
+                <h2>Chart Explanation</h2>
+                <ul>
+                    <li><strong>Top Chart:</strong> Displays the probability of having one or more dead spells at each
+                        draw step, with an annotation showing the average probability.</li>
+                    <li><strong>Middle Chart:</strong> Plots the average number of dead spells alongside dashed lines
+                        for the 10th (20% line) and 90th percentiles, revealing the variability in your hand's
+                        performance.</li>
+                    <li><strong>Bottom Chart:</strong> Illustrates the percentage of simulations where adding an extra
+                        mana pip of a particular color would have reduced dead spells, highlighting which mana colors
+                        are most beneficial.</li>
+                </ul>
             </div>
         </div>
     </div>
