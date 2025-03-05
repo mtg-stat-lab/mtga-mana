@@ -48,4 +48,6 @@ def simulate():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    default_port = 5001 # 5000 being used on my mac by something
+    port = int(os.environ.get('PORT', default_port))
+    app.run(host='0.0.0.0', port=port)
