@@ -13,12 +13,26 @@
             margin: 20px;
         }
 
+        /* Header area for Run Simulation button and About box */
+        .header {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .header button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
         /* Collapsible help box styling */
         details.documentation {
+            flex: 1;
             padding: 10px;
             border: 1px solid #ccc;
             background-color: #f9f9f9;
-            margin-bottom: 20px;
         }
 
         details.documentation summary {
@@ -38,6 +52,8 @@
         .result-container {
             width: 60%;
             padding-left: 20px;
+            min-height: 300px;
+            /* Give some height so spinner area is visible */
         }
 
         input,
@@ -56,14 +72,32 @@
             font-weight: bold;
         }
 
-        button {
-            padding: 10px 20px;
+        /* Remove the button from the form so only the header button is used */
+        .form-container button {
+            display: none;
         }
 
-        #loading {
-            display: none;
-            font-style: italic;
-            color: #555;
+        /* Spinner styling */
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         /* Tooltip styling */
@@ -97,38 +131,41 @@
 </head>
 
 <body>
-    <h1>MTG "Got Pips" Mana Simulator</h1>
+    <h2>MTG "Got Pips" Mana Simulator</h2>
 
-    <!-- Collapsible Help Section -->
-    <details class="documentation">
-        <summary>About</summary>
-        <h2>Simulation Methodology</h2>
-        <p>
-            This simulator models a Magic: The Gathering scenario where your deck contains a mix of spells and mana
-            cards.
-            For each simulation:
-        </p>
-        <ul>
-            <li>The deck is shuffled, then cards are drawn over several turns.</li>
-            <li>The app evaluates your hand to determine "dead" spells.</li>
-            <li>A spell is considered "dead" if you don't have the mana color pips in hand to cast it.</li>
-            <li>The app determines which extra color mana pip—if added—would most reduce your "dead" spells.</li>
-        </ul>
-        <p>
-            Running many simulations lets us estimate probabilities and averages that are then visualized.
-            Note that we aren't keeping track of uncolored mana requirements or other special card abilities.
-        </p>
-        <h2>Chart Explanation</h2>
-        <ul>
-            <li><strong>Top Chart:</strong> Displays the probability of having one or more dead spells at each draw
-                step, with an annotation showing the average probability.</li>
-            <li><strong>Middle Chart:</strong> Plots the average number of dead spells alongside dashed lines for the
-                10th (20% line) and 90th percentiles, revealing the variability in your hand's performance.</li>
-            <li><strong>Bottom Chart:</strong> Illustrates the percentage of simulations where adding an extra mana pip
-                of a particular color would have reduced dead spells, highlighting which mana colors are most
-                beneficial.</li>
-        </ul>
-    </details>
+    <!-- Header area with Run Simulation button and About section -->
+    <div class="header">
+        <button id="runSimulationHeader">Run Simulation</button>
+        <details class="documentation">
+            <summary>About</summary>
+            <h2>Simulation Methodology</h2>
+            <p>
+                This simulator models a Magic: The Gathering scenario where your deck contains a mix of spells and mana
+                cards.
+                For each simulation:
+            </p>
+            <ul>
+                <li>The deck is shuffled, then cards are drawn over several turns.</li>
+                <li>The app evaluates your hand to determine "dead" spells.</li>
+                <li>A spell is considered "dead" if you don't have the mana color pips in hand to cast it.</li>
+                <li>The app determines which extra color mana pip—if added—would most reduce your "dead" spells.</li>
+            </ul>
+            <p>
+                Running many simulations lets us estimate probabilities and averages that are then visualized.
+                Note that we aren't keeping track of uncolored mana requirements or other special card abilities.
+            </p>
+            <h2>Chart Explanation</h2>
+            <ul>
+                <li><strong>Top Chart:</strong> Displays the probability of having one or more dead spells at each draw
+                    step, with an annotation showing the average probability.</li>
+                <li><strong>Middle Chart:</strong> Plots the average number of dead spells alongside dashed lines for
+                    the 10th (20% line) and 90th percentiles, revealing the variability in your hand's performance.</li>
+                <li><strong>Bottom Chart:</strong> Illustrates the percentage of simulations where adding an extra mana
+                    pip of a particular color would have reduced dead spells, highlighting which mana colors are most
+                    beneficial.</li>
+            </ul>
+        </details>
+    </div>
 
     <div class="container">
         <div class="form-container">
@@ -167,14 +204,14 @@
                 </label>
                 <textarea id="spells_json" name="spells_json">
 {
-    "U": 6,
-    "B": 5,
-    "W": 4,
-    "WB": 1,
-    "UB": 1,
-    "WU": 1
+  "U": 6,
+  "B": 5,
+  "W": 4,
+  "WB": 1,
+  "UB": 1,
+  "WU": 1
 }
-                </textarea>
+        </textarea>
 
                 <label for="mana_json">Mana (JSON):
                     <span class="tooltip"
@@ -182,36 +219,31 @@
                 </label>
                 <textarea id="mana_json" name="mana_json">
 {
-    "U": 5,
-    "B": 4,
-    "W": 4,
-    "UB": 1,
-    "WB": 1,
-    "WU": 1,
-    "WUBRG": 1
+  "U": 5,
+  "B": 4,
+  "W": 4,
+  "UB": 1,
+  "WB": 1,
+  "WU": 1,
+  "WUBRG": 1
 }
-                </textarea>
-
-                <button type="submit">Run Simulation</button>
+        </textarea>
             </form>
-            <p id="loading">Running simulation, please wait...</p>
         </div>
         <div class="result-container">
             <div id="chart-result">
-                <!-- The simulation chart will appear here -->
+                <!-- The simulation chart will appear here. While waiting, a spinner and text are shown. -->
             </div>
         </div>
     </div>
 
     <script>
-        const form = document.getElementById('simulation-form');
-        const loading = document.getElementById('loading');
-        const resultContainer = document.getElementById('chart-result');
+        function runSimulation() {
+            const form = document.getElementById('simulation-form');
+            const resultContainer = document.getElementById('chart-result');
 
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            loading.style.display = 'block';
-            resultContainer.innerHTML = '';
+            // Show spinner and waiting text in the chart area
+            resultContainer.innerHTML = '<div class="spinner"></div> Running simulation, please wait...';
 
             // Collect form data into a JSON object.
             const formData = new FormData(form);
@@ -228,19 +260,26 @@
             })
                 .then(response => response.json())
                 .then(json => {
-                    loading.style.display = 'none';
                     if (json.error) {
                         resultContainer.innerHTML = 'Error: ' + json.error;
                     } else {
-                        // Embed the chart using the returned Vega-Lite spec
+                        // Embed the chart using the returned Vega-Lite spec.
                         vegaEmbed('#chart-result', json.chart_spec);
                     }
                 })
                 .catch(error => {
-                    loading.style.display = 'none';
                     resultContainer.innerHTML = 'Error: ' + error;
                 });
+        }
+
+        // Listen for form submissions (e.g. when pressing Enter).
+        document.getElementById('simulation-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            runSimulation();
         });
+
+        // Listen for clicks on the header Run Simulation button.
+        document.getElementById('runSimulationHeader').addEventListener('click', runSimulation);
     </script>
 </body>
 
