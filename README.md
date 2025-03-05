@@ -34,3 +34,20 @@ Go to [this URL](http://127.0.0.1:5001/) to see the app!
 ### History
 
 Started this shell based on this [ChatGPT conversation](https://chatgpt.com/share/67c5a082-dca4-8003-8937-992d41ee3bb1).
+
+
+### TODO
+
+* Setup a Render account and deploy this
+
+* Limit the number of simulations that can be run
+
+* Setup some CI and unit testing
+
+* Keep track of the number of dead spells in each simulation and plot the distribution of dead spell count as stacked bars over step
+
+* Share with Alex
+
+* Share in LLU, 17lands
+
+* Connect to LoL and share there as well
