@@ -4,8 +4,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from flask import Flask, render_template, request, jsonify
 import json
-import altair as alt
-import pandas as pd
 from lib.mana import run_simulation, create_altair_charts
 
 app = Flask(__name__)
