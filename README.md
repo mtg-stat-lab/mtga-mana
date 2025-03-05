@@ -43,6 +43,13 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 
 ### TODO
 
+* Compute some summary statistics and display them in a table at the top of the charts
+  -- percent of turns with 0 dead spells
+  -- percent of runs with 0 dead spells
+  -- expected number of dead spells per turn
+  -- most desired pip color
+  -- least desired pip color (of those used in spells)
+
 * Keep track of the number of dead spells in each simulation and plot the distribution of dead spell count as stacked bars over ste
 
 * Make the chart widths proportional to the number of draw steps so they appear more fixed
