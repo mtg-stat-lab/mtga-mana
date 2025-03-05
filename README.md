@@ -45,7 +45,12 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 
 * Keep track of the number of dead spells in each simulation and plot the distribution of dead spell count as stacked bars over ste
 
+* Make the chart widths proportional to the number of draw steps so they appear more fixed
+
+* Add tooltips
+
 * Limit the number of simulations that can be run to 1,000
+
 * Limit the number of draw steps to 10 (and make that the default)
 * Have the `0` draw step be the starting hand, and go up from there 10 draws
 * In the X-axis for the charts, change the `0` to be `"start"`

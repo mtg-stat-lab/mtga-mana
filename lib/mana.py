@@ -14,8 +14,8 @@ class Spell:
     For example, cost_str='UB' => requires 1 Blue, 1 Black.
     """
     def __init__(self, cost_str: str):
-        self.cost_str: str = cost_str
-        self.required_colors: Counter[str] = Counter(cost_str)
+        self.cost_str = cost_str
+        self.required_colors = Counter(cost_str)
 
     def __repr__(self) -> str:
         return f"Spell(cost='{self.cost_str}')"
@@ -26,26 +26,24 @@ class Mana:
     'WUBRG' => can produce any of W, U, B, R, G.
     """
     def __init__(self, mana_str: str):
-        self.mana_str: str = mana_str
-        self.producible_colors: set[str] = set(mana_str)
+        self.mana_str = mana_str
+        self.producible_colors = set(mana_str)
 
     def __repr__(self) -> str:
         return f"Mana(mana='{self.mana_str}')"
 
-def all_possible_color_combinations(mana_cards: list[Mana]) -> list[Counter[str]]:
+def all_possible_color_combinations(mana_cards):
     """
     For a given list of Mana objects, return all possible ways to pick exactly one color
     from each card.
     """
-    color_sets = [m.producible_colors for m in mana_cards]
-    combos = itertools.product(*color_sets)  # Cartesian product
-    combo_counters: list[Counter[str]] = []
+    combos = itertools.product(*(m.producible_colors for m in mana_cards))  # Cartesian product
+    combo_counters = []
     for combo in combos:
-        c = Counter(combo)
-        combo_counters.append(c)
+        combo_counters.append(Counter(combo))
     return combo_counters
 
-def can_cast(spell: Spell, mana_cards: list[Mana]) -> bool:
+def can_cast(spell, mana_cards):
     """
     Returns True if there's at least one way to assign exactly one color from each Mana
     such that the total color pips >= the spell's required colors.
@@ -59,80 +57,56 @@ def can_cast(spell: Spell, mana_cards: list[Mana]) -> bool:
 
 class Deck:
     """
-    Represents a deck of size `total_size`. It can contain:
-      - A list of `Spell` objects
-      - A list of `Mana` objects
-      - Additional slots for "other" cards (filled with None by default).
+    Represents a deck of size `total_size`. It can contain spells, mana cards, and filler (None).
     """
-    def __init__(self, spells: list[Spell], mana_cards: list[Mana], total_size: int = 40):
-        self.spells: list[Spell] = spells
-        self.mana_cards: list[Mana] = mana_cards
-        self.total_size: int = total_size
+    def __init__(self, spells, mana_cards, total_size=40):
+        self.spells = spells
+        self.mana_cards = mana_cards
+        self.total_size = total_size
 
-        # Construct the "physical" deck: a list of all cards (Spell, Mana, or None).
-        self.deck_list: list[Spell | Mana | None] = [*spells, *mana_cards]
+        self.deck_list = spells + mana_cards
         leftover = total_size - len(self.deck_list)
         if leftover > 0:
-            # Pad with None to represent "other" cards that are never dead (no color cost).
-            self.deck_list += [None] * leftover
+            self.deck_list += [None] * leftover  # "other" filler cards
 
-    def shuffle(self) -> None:
+    def shuffle(self):
         random.shuffle(self.deck_list)
 
-    def draw_top_n(self, n: int) -> list[Spell | Mana | None]:
-        """
-        Returns the top `n` cards from the deck (non-destructively).
-        """
+    def draw_top_n(self, n):
         return self.deck_list[:n]
 
-    def __len__(self) -> int:
+    def __len__(self):
         return len(self.deck_list)
 
-    def __repr__(self) -> str:
-        return (f"Deck(size={self.total_size}, spells={len(self.spells)}, "
-                f"mana={len(self.mana_cards)}, actual_list_len={len(self.deck_list)})")
-
-def build_deck_from_dicts(spells_dict: dict[str, int],
-                          mana_dict: dict[str, int],
-                          total_deck_size: int = 40) -> Deck:
-    """
-    Builds a Deck from dictionaries like:
-        spells_dict = {'U': 3, 'B': 5, 'UU': 1, 'UB': 2}
-        mana_dict = {'U': 7, 'UB': 2, 'B': 6, 'WUBRG': 1}
-    """
-    spells: list[Spell] = []
+def build_deck_from_dicts(spells_dict, mana_dict, total_deck_size=40):
+    spells = []
     for cost_str, qty in spells_dict.items():
         for _ in range(qty):
             spells.append(Spell(cost_str))
 
-    mana_cards: list[Mana] = []
+    mana_cards = []
     for mana_str, qty in mana_dict.items():
         for _ in range(qty):
             mana_cards.append(Mana(mana_str))
 
     return Deck(spells, mana_cards, total_deck_size)
 
-def _count_dead_spells(hand: list[Spell | Mana | None]) -> int:
+def _count_dead_spells(hand):
     """
-    Given a hand, return how many spells are 'dead'
-    (i.e. uncastable given the current mana in that hand).
+    Return how many spells in 'hand' are uncastable given the mana in 'hand'.
     """
     hand_spells = [c for c in hand if isinstance(c, Spell)]
     hand_mana   = [c for c in hand if isinstance(c, Mana)]
-    dead_count = 0
-    for s in hand_spells:
-        if not can_cast(s, hand_mana):
-            dead_count += 1
+    dead_count = sum(not can_cast(s, hand_mana) for s in hand_spells)
     return dead_count
 
-def _best_single_color_to_add(hand: list[Spell | Mana | None],
-                              colors_to_test: list[str] = CANONICAL_COLORS) -> str:
+def _best_single_color_to_add(hand, colors_to_test=CANONICAL_COLORS):
     """
-    Among the given list of colors, find which single color would reduce
-    the number of dead spells the most if we added exactly one Mana(color).
+    Among `colors_to_test`, find which single color would reduce
+    the number of dead spells the most.
     """
     base_dead = _count_dead_spells(hand)
-    color_results: list[tuple[str, int]] = []
+    color_results = []
     for color in colors_to_test:
         hypothetical_hand = hand + [Mana(color)]
         hypothetical_dead = _count_dead_spells(hypothetical_hand)
@@ -141,40 +115,38 @@ def _best_single_color_to_add(hand: list[Spell | Mana | None],
     if min_dead >= base_dead:
         return "none"
     top_candidates = [cr[0] for cr in color_results if cr[1] == min_dead]
-    best_color = random.choice(top_candidates)
-    return best_color
+    return random.choice(top_candidates)
 
-def run_simulation(spells_dict: dict[str, int],
-                   mana_dict: dict[str, int],
-                   total_deck_size: int = 40,
-                   initial_hand_size: int = 7,
-                   draws: int = 10,
-                   simulations: int = 100_000,
-                   seed: int | None = None) -> pd.DataFrame:
+def run_simulation(spells_dict,
+                   mana_dict,
+                   total_deck_size=40,
+                   initial_hand_size=7,
+                   draws=10,
+                   simulations=100_000,
+                   seed=None):
     """
     Monte Carlo simulation steps:
-      1) Build a Deck from spells_dict and mana_dict.
-      2) For each simulation:
-         - Shuffle the deck.
-         - For turn in [0..draws-1]:
-           - Draw (7 + turn) cards.
-           - Count how many spells are dead.
-           - Find which color is best to add (or "none" if not helpful).
-      3) Collect distribution of dead spells over all simulations, for each turn.
-      4) Compute average dead spells, 80% CI (10th–90th percentile), probability of having ≥1 dead spell,
-         and fraction each color was chosen as "best" (including "none").
-
-    Returns a pd.DataFrame with columns:
-        - "turn": 0, 1, ..., draws-1
-        - "avg_dead_cards", "dead_cards_10p", "dead_cards_90p", "p_dead",
-        - "pct_optimal_W", "pct_optimal_U", "pct_optimal_B", "pct_optimal_R", "pct_optimal_G", "pct_optimal_none"
+      1) Build a Deck, shuffle, and draw each turn.
+      2) For each draw step, count the number of dead spells and which color would help most.
+      3) Keep track of p_dead = Probability of at least 1 dead spell on that turn.
+      4) Keep track of how many times each color is optimal (including 'none').
+      5) Also build a distribution of 'dead spells' across all simulations for each turn.
+    Returns a tuple of dataframes: (df_summary, df_distribution)
+      - df_summary has columns:
+          turn, p_dead,
+          pct_optimal_W, pct_optimal_U, pct_optimal_B, pct_optimal_R, pct_optimal_G, pct_optimal_none
+      - df_distribution has columns:
+          turn, dead_spells, frequency
+        meaning: On `turn`, `dead_spells` occurred `frequency` times across the simulations.
     """
     if seed is not None:
         random.seed(seed)
 
     deck = build_deck_from_dicts(spells_dict, mana_dict, total_deck_size)
-    dead_counts_per_turn: list[list[int]] = [[] for _ in range(draws)]
-    best_color_counts: list[Counter[str]] = [Counter() for _ in range(draws)]
+    # For each turn, we store list of dead spell counts from each simulation:
+    dead_counts_per_turn = [[] for _ in range(draws)]
+    # For each turn, we also track best color picks:
+    best_color_counts = [Counter() for _ in range(draws)]
     extended_colors = CANONICAL_COLORS + ["none"]
 
     for _ in range(simulations):
@@ -184,16 +156,18 @@ def run_simulation(spells_dict: dict[str, int],
             hand = deck.draw_top_n(hand_size)
             dead_count = _count_dead_spells(hand)
             dead_counts_per_turn[turn].append(dead_count)
+
             best_color = _best_single_color_to_add(hand, CANONICAL_COLORS)
             best_color_counts[turn][best_color] += 1
 
-    rows = []
+    # Build df_summary
+    rows_summary = []
     for turn in range(draws):
         dead_array = np.array(dead_counts_per_turn[turn])
-        avg_dead = float(dead_array.mean())
-        low_80 = float(np.percentile(dead_array, 10))
-        high_80 = float(np.percentile(dead_array, 90))
+        # Probability of at least 1 dead spell
         p_dead = float((dead_array >= 1).mean())
+
+        # Fraction of times each color is best
         total_sims = float(simulations)
         color_fracs = {
             color: best_color_counts[turn][color] / total_sims
@@ -201,57 +175,51 @@ def run_simulation(spells_dict: dict[str, int],
         }
         row = {
             "turn": turn,
-            "avg_dead_cards": avg_dead,
-            "dead_cards_10p": low_80,
-            "dead_cards_90p": high_80,
             "p_dead": p_dead,
             **{f"pct_optimal_{c}": color_fracs[c] for c in extended_colors}
         }
-        rows.append(row)
+        rows_summary.append(row)
 
-    df = pd.DataFrame(rows)
-    return df
+    df_summary = pd.DataFrame(rows_summary)
 
-def create_altair_charts(df):
+    # Build df_distribution for stacked bar chart
+    distribution_rows = []
+    for turn in range(draws):
+        counts = Counter(dead_counts_per_turn[turn])
+        for dead_val, freq in counts.items():
+            distribution_rows.append({
+                "turn": turn,
+                "dead_spells": dead_val,
+                "frequency": freq
+            })
+
+    df_distribution = pd.DataFrame(distribution_rows)
+    return df_summary, df_distribution
+
+def create_altair_charts(df_summary, df_distribution):
     """
-    Create three stacked Altair charts:
-      1) Top chart: Probability of having one or more dead spells (area chart) vs. draw step,
-         with an annotation for the average probability.
-      2) Middle chart: Average dead spells (solid) plus 10th/90th percentile (dashed) vs. draw step,
-         with a legend indicating the 20% (10th percentile), average, and 80% (90th percentile) lines.
-      3) Bottom chart: Percent of time each color was optimal, excluding 'none'
-         (white displayed as 'grey')
+    Creates three Altair charts, stacked vertically:
+      1) Probability of ≥1 dead spell (area chart)
+      2) Distribution of dead spells (stacked bar chart by turn)
+      3) Percent of time each color is optimal
     """
 
-    # Fix column names for canonical colors
-    df = df.copy()
-    column_names = [f"pct_optimal_{c}" for c in CANONICAL_COLORS]
-    df.rename(columns=dict(zip(column_names, CANONICAL_COLORS)), inplace=True)
-
-    plot_width = 600
-    plot_height = 200
-    slate_gray = "#708090"
-
-    # --- Top Chart: Probability of ≥1 dead spell (area chart) with annotation ---
-    prob_chart = alt.Chart(df).mark_area(interpolate="monotone", opacity=0.3, color="red").encode(
+    # --- 1) Top Chart: Probability of ≥1 dead spell ---
+    prob_chart = alt.Chart(df_summary).mark_area(interpolate="monotone", opacity=0.3, color="red").encode(
         x=alt.X('turn:Q', title='Draw step', axis=alt.Axis(format='d')),
-        y=alt.Y(
-            'p_dead:Q', 
-            title='Probability of ≥1 dead spell', 
-            axis=alt.Axis(format='%'),
-            scale=alt.Scale(domain=[0, 1])
-        )
+        y=alt.Y('p_dead:Q', title='Probability of ≥1 dead spell', axis=alt.Axis(format='%'),
+                scale=alt.Scale(domain=[0, 1]))
     ).properties(
-        width=plot_width,
-        height=plot_height,
+        width=600,
+        height=200,
         title="Probability of having one or more dead spells"
     )
 
-    # Compute overall average probability and create a text annotation.
-    avg_prob = df['p_dead'].mean()  # average probability (0-1)
+    # Add text annotation of average probability
+    avg_prob = df_summary['p_dead'].mean() if len(df_summary) > 0 else 0
     avg_label = f"Avg: {avg_prob*100:.1f}%"
-    max_turn = df['turn'].max() if not df.empty else 10
-    text = alt.Chart(pd.DataFrame({
+    max_turn = df_summary['turn'].max() if not df_summary.empty else 10
+    text_annot = alt.Chart(pd.DataFrame({
         'turn': [max_turn],
         'p_dead': [0.95],
         'label': [avg_label]
@@ -262,51 +230,43 @@ def create_altair_charts(df):
         fontSize=14,
         dx=-5
     ).encode(
-        x=alt.X('turn:Q'),
-        y=alt.Y('p_dead:Q'),
-        text=alt.Text('label:N')
+        x='turn:Q',
+        y='p_dead:Q',
+        text='label:N'
     )
 
-    prob_chart = prob_chart + text
+    prob_chart = prob_chart + text_annot
 
-    # --- Middle Chart: 'Dead' Spells in Hand with Legend ---
-    top_chart = alt.Chart(df).transform_fold(
-        ['avg_dead_cards', 'dead_cards_10p', 'dead_cards_90p'],
-        as_=['metric', 'value']
-    ).mark_line().encode(
-        x=alt.X('turn:Q', title='Draw step', axis=alt.Axis(format='d')),
-        y=alt.Y('value:Q', title="'Dead' spells in hand"),
-        color=alt.Color(
-            'metric:N',
-            scale=alt.Scale(
-                domain=['dead_cards_10p', 'avg_dead_cards', 'dead_cards_90p'],
-                range=[slate_gray, slate_gray, slate_gray]
+    # --- 2) Middle Chart: Stacked bar distribution of dead spells ---
+    distribution_chart = (
+        alt.Chart(df_distribution)
+        .mark_bar()
+        .encode(
+            x=alt.X('turn:O', title='Draw step'),  # discrete axis
+            y=alt.Y('frequency:Q', title='Number of simulations'),
+            color=alt.Color(
+                'dead_spells:N',
+                title='Dead Spells in Hand',
+                scale=alt.Scale(scheme='magma')  # Use the magma color scheme
             ),
-            legend=alt.Legend(
-                title="Line Type",
-                labelExpr=(
-                    "datum.value == 'avg_dead_cards' ? 'Average' : "
-                    "datum.value == 'dead_cards_10p' ? '20% line' : '80% line'"
-                )
-            )
-        ),
-        strokeDash=alt.StrokeDash(
-            'metric:N',
-            scale=alt.Scale(
-                domain=['dead_cards_10p', 'avg_dead_cards', 'dead_cards_90p'],
-                range=[[4, 4], [], [4, 4]]
-            ),
-            legend=None
+            order=alt.Order('dead_spells', sort='ascending')
         )
-    ).properties(
-        width=plot_width,
-        height=plot_height,
-        title="Expected number of 'dead' spells in your hand"
+        .properties(
+            width=600,
+            height=200,
+            title="Distribution of Dead Spells (Stacked)"
+        )
     )
 
-    # --- Bottom Chart: Percent Optimal Color ---
+    # --- 3) Bottom Chart: Which color was optimal? ---
+    # For convenience, rename the color columns in df_summary for Altair
+    # (like your original code, but we no longer have 'dead_cards_10p' / 'dead_cards_90p', etc.)
+    df_colordist = df_summary.copy()
+    canonical_map = {f"pct_optimal_{c}": c for c in CANONICAL_COLORS}
+    df_colordist.rename(columns=canonical_map, inplace=True)
+
     bottom_chart = (
-        alt.Chart(df)
+        alt.Chart(df_colordist)
         .transform_fold(
             CANONICAL_COLORS,
             as_=['color_type', 'pct']
@@ -317,20 +277,17 @@ def create_altair_charts(df):
             y=alt.Y('pct:Q', title='Percent of the time', axis=alt.Axis(format='%')),
             color=alt.Color(
                 'color_type:N',
-                scale=alt.Scale(
-                    domain=CANONICAL_COLORS,
-                    range=CANONICAL_COLOR_VALUES,
-                ),
+                scale=alt.Scale(domain=CANONICAL_COLORS, range=CANONICAL_COLOR_VALUES),
                 legend=alt.Legend(title='Mana')
             )
         )
         .properties(
-            width=plot_width,
-            height=plot_height,
+            width=600,
+            height=200,
             title="Percent of time you'll wish you had an extra pip of a given color"
         )
     )
 
-    # Concatenate the three charts vertically.
-    combined_chart = alt.vconcat(prob_chart, top_chart, bottom_chart).resolve_scale(color='independent')
+    # Concatenate the three charts vertically
+    combined_chart = alt.vconcat(prob_chart, distribution_chart, bottom_chart).resolve_scale(color='independent')
     return combined_chart

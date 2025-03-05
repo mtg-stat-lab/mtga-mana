@@ -28,8 +28,8 @@ def simulate():
         spells_dict = json.loads(data['spells_json'])
         mana_dict = json.loads(data['mana_json'])
 
-        # Run the simulation.
-        df_results = run_simulation(
+        # Modified run: returns two dataframes
+        df_summary, df_distribution = run_simulation(
             spells_dict,
             mana_dict,
             total_deck_size=deck_size,
@@ -38,7 +38,8 @@ def simulate():
             seed=seed,
             initial_hand_size=hand_size
         )
-        chart = create_altair_charts(df_results)
+
+        chart = create_altair_charts(df_summary, df_distribution)
         
         # Return the Vega-Lite specification
         chart_spec = chart.to_dict()
@@ -46,6 +47,7 @@ def simulate():
     except Exception as e:
         print("Error in /simulate:", e)
         return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     default_port = 5001 # 5000 being used on my mac by something
