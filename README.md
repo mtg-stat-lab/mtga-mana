@@ -38,13 +38,13 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 
 ### TODO
 
-* Setup a Render account and deploy this
-
 * Limit the number of simulations that can be run
 
-* Setup some CI and unit testing
+* Add some documentation and help
 
 * Keep track of the number of dead spells in each simulation and plot the distribution of dead spell count as stacked bars over step
+
+* Setup some CI and unit testing
 
 * Share with Alex
 
