@@ -3,7 +3,12 @@ Mana calculator
 
 ## Instructions
 
-### Running the app
+### Running the app on Render
+
+* In Render dashboard [here](https://dashboard.render.com/web/srv-cv430uggph6c73aanba0).
+* Deployed URL is [https://mtg-got-pips.onrender.com](https://mtg-got-pips.onrender.com).
+
+### Running the app locally
 
 Create the virtual environment
 
