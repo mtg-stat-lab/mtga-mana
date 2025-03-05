@@ -40,9 +40,10 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 
 * Limit the number of simulations that can be run
 
-* Keep track of a version number displayed somewhere on the main page
+* Remove any colors from the chart that aren't included in any of the JSON
 
-* Add some documentation and help
+* Keep track of a version number displayed somewhere on the main page
+(maybe in the main page)
 
 * Keep track of the number of dead spells in each simulation and plot the distribution of dead spell count as stacked bars over step
 
