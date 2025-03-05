@@ -185,8 +185,8 @@ def create_altair_charts(df_summary, df_distribution):
     else:
         max_dead = 0
 
-    # Build the domain for dead spells bars (only for > 0).
-    dead_domain = list(range(max_dead, 0, -1))
+    # Build the domain for dead spells bars (only for > 0) in ascending order so the legend displays 1 at the top.
+    dead_domain = list(range(1, max_dead + 1))
 
     # Build the distribution chart:
     # 1. Aggregate the total simulation count for each draw step over the full data.
@@ -213,14 +213,14 @@ def create_altair_charts(df_summary, df_distribution):
                     axis=alt.Axis(format='%')),
             color=alt.Color("dead_spells:O",
                             title="Dead spells",
-                            scale=alt.Scale(domain=dead_domain, scheme="magma", reverse=True)
+                            scale=alt.Scale(domain=dead_domain, scheme="magma", reverse=False)
                            ),
             order=alt.Order("dead_spells:Q", sort="descending")
         )
         .properties(
             width=plot_width,
             height=plot_height,
-            title="Percent of simulations with a number of dead spells",
+            title="Percent of simulations with a number of dead spells"
         )
     )
 
