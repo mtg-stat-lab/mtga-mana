@@ -40,6 +40,8 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 
 * Limit the number of simulations that can be run
 
+* Keep track of a version number displayed somewhere on the main page
+
 * Add some documentation and help
 
 * Keep track of the number of dead spells in each simulation and plot the distribution of dead spell count as stacked bars over step
@@ -51,3 +53,15 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 * Share in LLU, 17lands
 
 * Connect to LoL and share there as well
+
+### Other
+
+To get the app into context for an LLM:
+
+``` bash
+find . -type f \( -name '*.py' -o -name '*.html' \) -not -path './venv*' -print0 | sort -z | while IFS= read -r -d '' file; do
+  echo "===== $file ====="
+  cat "$file"
+  echo ""
+done | pbcopy
+```
