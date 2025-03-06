@@ -207,39 +207,48 @@ def run_simulation(spells_dict,
 
     deck = build_deck_from_dicts(spells_dict, mana_dict, total_deck_size)
 
-    dead_counts_per_turn = [[] for _ in range(draws + 1)]
-    best_color_counts = [Counter() for _ in range(draws + 1)]
+    # We'll collect stats for turns 1..draws
+    dead_counts_per_turn = [[] for _ in range(draws)]
+    best_color_counts = [Counter() for _ in range(draws)]
 
     for _ in range(simulations):
         deck.shuffle()
 
-        for turn in range(draws + 1):
-            hand_size = initial_hand_size + turn
-            hand = deck.draw_top_n(hand_size)
-            dead_count = _count_dead_spells(hand, turn, on_play)
-            dead_counts_per_turn[turn].append(dead_count)
+        for turn in range(1, draws + 1):
+            # On the play => you do NOT draw on turn 1 => total draws so far is turn-1
+            # On the draw => you DO draw on turn 1 => total draws so far is turn
+            if on_play:
+                hand_size = initial_hand_size + (turn - 1)
+            else:
+                hand_size = initial_hand_size + turn
 
+            hand = deck.draw_top_n(hand_size)
+
+            # Count dead spells
+            dead_count = _count_dead_spells(hand, turn, on_play)
+            dead_counts_per_turn[turn - 1].append(dead_count)
+
+            # Find best color to replace
             best_color = _best_single_color_to_replace(hand, turn, on_play)
-            best_color_counts[turn][best_color] += 1
+            best_color_counts[turn - 1][best_color] += 1
 
     # Build DataFrames
     rows_summary = []
     extended_colors = CANONICAL_COLORS + ["none"]
 
-    for turn in range(draws + 1):
-        dead_array = np.array(dead_counts_per_turn[turn])
+    for turn in range(1, draws + 1):
+        dead_array = np.array(dead_counts_per_turn[turn - 1])
         p_dead = float((dead_array >= 1).mean())
-        turn_lbl = "start" if turn == 0 else str(turn)
 
         total_sims = float(simulations)
         color_fracs = {
-            color: best_color_counts[turn][color] / total_sims
+            color: best_color_counts[turn - 1][color] / total_sims
             for color in extended_colors
         }
 
         row = {
             "turn": turn,
-            "turn_label": turn_lbl,
+            "turn_label": str(turn),  # Just use the turn number as label
             "p_dead": p_dead,
             **{f"pct_optimal_{c}": color_fracs[c] for c in extended_colors}
         }
@@ -248,13 +257,12 @@ def run_simulation(spells_dict,
     df_summary = pd.DataFrame(rows_summary)
 
     distribution_rows = []
-    for turn in range(draws + 1):
-        turn_lbl = "start" if turn == 0 else str(turn)
-        counts = Counter(dead_counts_per_turn[turn])
+    for turn in range(1, draws + 1):
+        counts = Counter(dead_counts_per_turn[turn - 1])
         for dead_val, freq in counts.items():
             distribution_rows.append({
                 "turn": turn,
-                "turn_label": turn_lbl,
+                "turn_label": str(turn),
                 "dead_spells": dead_val,
                 "frequency": freq
             })
@@ -263,12 +271,14 @@ def run_simulation(spells_dict,
 
     return df_summary, df_distribution
 
+
 def create_altair_charts(df_summary, df_distribution):
     plot_width = 600
     plot_height = 300
 
-    max_turn = int(df_summary["turn"].max()) if not df_summary.empty else 0
-    turn_sort = ["start"] + [str(i) for i in range(1, max_turn + 1)]
+    # If we labeled turn from 1..draws, just sort them as strings
+    max_turn = int(df_summary["turn"].max()) if not df_summary.empty else 1
+    turn_sort = [str(i) for i in range(1, max_turn + 1)]
 
     # Distribution chart
     distribution_chart = (
@@ -283,16 +293,22 @@ def create_altair_charts(df_summary, df_distribution):
         .transform_filter("datum.dead_spells > 0")
         .mark_bar()
         .encode(
-            x=alt.X("turn_label:N",
-                    title="Draw step",
-                    scale=alt.Scale(domain=turn_sort)),
-            y=alt.Y("percent:Q",
-                    title="Percent of simulations",
-                    scale=alt.Scale(domain=[0, 1]),
-                    axis=alt.Axis(format='%')),
-            color=alt.Color("dead_spells:O",
-                            title="Dead spells",
-                            scale=alt.Scale(scheme="magma", reverse=False)),
+            x=alt.X(
+                "turn_label:N",
+                title="Turn number",     # <--- Updated here
+                scale=alt.Scale(domain=turn_sort)
+            ),
+            y=alt.Y(
+                "percent:Q",
+                title="Percent of simulations",
+                scale=alt.Scale(domain=[0, 1]),
+                axis=alt.Axis(format='%')
+            ),
+            color=alt.Color(
+                "dead_spells:O",
+                title="Dead spells",
+                scale=alt.Scale(scheme="magma", reverse=False)
+            ),
             order=alt.Order("dead_spells:Q", sort="descending")
         )
         .properties(
@@ -315,18 +331,24 @@ def create_altair_charts(df_summary, df_distribution):
         )
         .mark_line()
         .encode(
-            x=alt.X("turn_label:N",
-                    scale=alt.Scale(domain=turn_sort),
-                    title="Draw step"),
-            y=alt.Y("pct:Q",
-                    title="Percent of simulations",
-                    axis=alt.Axis(format="%")),
-            color=alt.Color("color_type:N",
-                            scale=alt.Scale(
-                                domain=CANONICAL_COLORS,
-                                range=CANONICAL_COLOR_VALUES
-                            ),
-                            legend=alt.Legend(title="Mana"))
+            x=alt.X(
+                "turn_label:N",
+                scale=alt.Scale(domain=turn_sort),
+                title="Turn number"      # <--- Updated here
+            ),
+            y=alt.Y(
+                "pct:Q",
+                title="Percent of simulations",
+                axis=alt.Axis(format="%")
+            ),
+            color=alt.Color(
+                "color_type:N",
+                scale=alt.Scale(
+                    domain=CANONICAL_COLORS,
+                    range=CANONICAL_COLOR_VALUES
+                ),
+                legend=alt.Legend(title="Mana")
+            )
         )
         .properties(
             width=plot_width,
@@ -335,6 +357,7 @@ def create_altair_charts(df_summary, df_distribution):
         )
     )
 
-    combined_chart = alt.vconcat(distribution_chart, bottom_chart)
-    combined_chart = combined_chart.resolve_scale(color="independent", x="shared")
+    combined_chart = alt.vconcat(distribution_chart, bottom_chart).resolve_scale(
+        color="independent", x="shared"
+    )
     return combined_chart
