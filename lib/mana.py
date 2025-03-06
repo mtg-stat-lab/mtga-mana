@@ -148,22 +148,46 @@ def _count_dead_spells(hand, turn, on_play):
             dead_count += 1
     return dead_count
 
-def _best_single_color_to_add(hand, turn, on_play, colors_to_test=CANONICAL_COLORS):
+def _best_single_color_to_replace(hand, turn, on_play, colors_to_test=CANONICAL_COLORS):
     """
-    Which single-color land would reduce dead spells the most if added to the hand?
+    Which single-color land replacement reduces dead spells the most?
+    We consider replacing exactly one of the existing lands in `hand` with a
+    single-color Mana(...) from `colors_to_test`.
     """
-    base_dead = _count_dead_spells(hand, turn, on_play)
-    color_results = []
-    for color in colors_to_test:
-        hypothetical_hand = hand + [Mana(color)]
-        hypothetical_dead = _count_dead_spells(hypothetical_hand, turn, on_play)
-        color_results.append((color, hypothetical_dead))
 
-    min_dead = min(cr[1] for cr in color_results)
-    if min_dead >= base_dead:
+    base_dead = _count_dead_spells(hand, turn, on_play)
+
+    # Separate out the lands in hand
+    hand_mana = [c for c in hand if isinstance(c, Mana)]
+    if not hand_mana:
+        # No mana in hand => can't replace anything
         return "none"
-    top_candidates = [cr[0] for cr in color_results if cr[1] == min_dead]
-    return random.choice(top_candidates)
+
+    best_color = "none"
+    best_dead_count = base_dead  # We want to minimize dead spells
+
+    for color in colors_to_test:
+        # We'll see if replacing *any* single land with this color helps
+        # Track the best scenario for this color
+        best_for_this_color = base_dead
+
+        for land_index, original_land in enumerate(hand_mana):
+            # Replace original_land with a new Mana(color)
+            hypothetical_hand = hand.copy()
+            # We only replace the first occurrence in hand (which is fine for a test)
+            idx_in_hand = hypothetical_hand.index(original_land)
+            hypothetical_hand[idx_in_hand] = Mana(color)
+
+            new_dead = _count_dead_spells(hypothetical_hand, turn, on_play)
+            if new_dead < best_for_this_color:
+                best_for_this_color = new_dead
+
+        # If the best scenario for this color is better than any we've found so far, update
+        if best_for_this_color < best_dead_count:
+            best_dead_count = best_for_this_color
+            best_color = color
+
+    return best_color
 
 def run_simulation(spells_dict,
                    mana_dict,
@@ -195,7 +219,7 @@ def run_simulation(spells_dict,
             dead_count = _count_dead_spells(hand, turn, on_play)
             dead_counts_per_turn[turn].append(dead_count)
 
-            best_color = _best_single_color_to_add(hand, turn, on_play)
+            best_color = _best_single_color_to_replace(hand, turn, on_play)
             best_color_counts[turn][best_color] += 1
 
     # Build DataFrames
@@ -307,7 +331,7 @@ def create_altair_charts(df_summary, df_distribution):
         .properties(
             width=plot_width,
             height=plot_height,
-            title="Percent of simulations where an extra pip of each color is optimal"
+            title="Percent of simulations where switching a land to each color is optimal"
         )
     )
 
