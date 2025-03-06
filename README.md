@@ -43,13 +43,15 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 
 ### TODO
 
-* Update the About
+* Sentence case everywhere
+* Enhance the Methodology section
+* Add a FAQ section
+* Choose a name
+
+* Change from the negative "dead cards" to the positive "castable spells"
+* Track for each spell (by key) (a) how often it is in hand, (b) how often it is castable, (c) % of time castable, (d) total mana cost, and (e) % castable over mana cost. Sort by (e) descending
 
 * Add an example in the About for how to enter the JSON
-
-* Create four sectionss -- title / run & help / input / output, and improve the visual design
-
-* Add tooltips
 
 * Limit the number of simulations that can be run to 1,000
 * Limit the number of draw steps to 20

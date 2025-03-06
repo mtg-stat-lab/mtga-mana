@@ -4,9 +4,13 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from flask import Flask, render_template, request, jsonify
 import json
-from lib.mana import run_simulation, create_altair_charts, CANONICAL_COLORS
 import numpy as np
 import pandas as pd
+
+# Import the simulation code (no altair stuff here)
+from lib.mana import run_simulation, CANONICAL_COLORS
+# Import the new chart classes
+from lib.viz import DistributionChart, BestColorChart
 
 app = Flask(__name__)
 
@@ -30,11 +34,11 @@ def simulate():
         spells_dict = json.loads(data['spells_json'])
         mana_dict = json.loads(data['mana_json'])
 
-        # Parse the on_play_or_draw field
+        # Parse the "on play or draw" field
         on_play_or_draw = data.get('on_play_or_draw', 'play')
         on_play = (on_play_or_draw.lower() == 'play')
 
-        # Run the simulation
+        # Run the simulation to get two DataFrames
         df_summary, df_distribution = run_simulation(
             spells_dict,
             mana_dict,
@@ -46,31 +50,29 @@ def simulate():
             on_play=on_play
         )
 
-        # Create the Vega-Lite chart
-        chart = create_altair_charts(df_summary, df_distribution)
-        chart_spec = chart.to_dict()
+        # Create separate chart specs
+        dist_chart_spec = DistributionChart(df_distribution).render_spec()
+        best_color_chart_spec = BestColorChart(df_summary).render_spec()
 
-        # Calculate statistics
-
-        # 1) Percent of turns with 0 dead spells
+        # Calculate additional statistics
         total_turns = (draws + 1) * simulations
         zero_dead_rows = df_distribution[df_distribution['dead_spells'] == 0]
         num_zero_dead = zero_dead_rows['frequency'].sum()
-        pct_turns_zero_dead = num_zero_dead / total_turns
+        pct_turns_zero_dead = num_zero_dead / total_turns if total_turns > 0 else 0
 
-        # 2) Expected number of dead spells per turn
         df_distribution['weighted_dead'] = df_distribution['dead_spells'] * df_distribution['frequency']
         total_dead_spells = df_distribution['weighted_dead'].sum()
-        expected_dead_per_turn = total_dead_spells / total_turns
+        expected_dead_per_turn = total_dead_spells / total_turns if total_turns > 0 else 0
 
-        # 3) Most desired pip color
+        # Determine "most desired" color
         color_fractions = {}
         for c in CANONICAL_COLORS:
-            frac_sum = df_summary[f"pct_optimal_{c}"].sum()
-            color_fractions[c] = frac_sum / (draws + 1)
-        most_desired_color = max(color_fractions, key=color_fractions.get)
+            col_name = f"pct_optimal_{c}"
+            frac_sum = df_summary[col_name].sum() if col_name in df_summary.columns else 0
+            color_fractions[c] = frac_sum / (draws + 1) if draws > 0 else 0
+        most_desired_color = max(color_fractions, key=color_fractions.get) if color_fractions else "N/A"
 
-        # 4) Least desired pip color (restricted to those used in spells)
+        # Determine "least desired" color (only among colors actually used in spells)
         used_spell_colors = set()
         for cost_str in spells_dict.keys():
             for ch in cost_str:
@@ -78,7 +80,7 @@ def simulate():
                     used_spell_colors.add(ch)
 
         if used_spell_colors:
-            least_desired_color = min(used_spell_colors, key=lambda c: color_fractions[c])
+            least_desired_color = min(used_spell_colors, key=lambda c: color_fractions.get(c, 0))
         else:
             least_desired_color = "N/A"
 
@@ -90,7 +92,8 @@ def simulate():
         }
 
         return jsonify({
-            'chart_spec': chart_spec,
+            'dist_chart_spec': dist_chart_spec,
+            'best_color_chart_spec': best_color_chart_spec,
             'stats': stats
         })
 
@@ -98,8 +101,7 @@ def simulate():
         print("Error in /simulate:", e)
         return jsonify({'error': str(e)}), 500
 
-
 if __name__ == '__main__':
-    default_port = 5001  # Use 5001 by default
+    default_port = 5001
     port = int(os.environ.get('PORT', default_port))
     app.run(host='0.0.0.0', port=port)
