@@ -3,7 +3,6 @@
 
 <head>
     <title>MTG "Got Pips" Mana Simulator</title>
-    <!-- Required meta tags for Bootstrap -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -16,7 +15,6 @@
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
 
     <style>
-        /* Override some spacing for the top-level container */
         body {
             background-color: #f8f9fa;
             margin-bottom: 60px;
@@ -32,22 +30,22 @@
             text-decoration: underline;
         }
 
-        /* Custom styling for the JSON textareas so they’re easy to read */
         textarea.form-control {
             font-family: monospace, "Courier New", Courier;
             white-space: pre;
         }
 
-        /* Chart area takes up available space with minimal margin */
+        /* Chart container: ensure no horizontal overflow */
         #chart-result {
-            min-height: 300px;
+            overflow-x: auto;
+            max-width: 100%;
         }
     </style>
 </head>
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-3">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
                 MTG "Got Pips" Mana Simulator
@@ -57,7 +55,6 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarContent">
-                <!-- Right side of the navbar -->
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     <li class="nav-item">
                         <button id="runSimulationHeader" class="btn btn-primary my-2 my-sm-0" type="button">
@@ -69,11 +66,54 @@
         </div>
     </nav>
 
-    <!-- Main container -->
-    <div class="container">
+    <!-- Main container spanning the full width -->
+    <div class="container-fluid py-3">
+        <!-- Accordion for "About & Methodology" spanning full width -->
+        <div class="accordion mb-3" id="aboutAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                        About & Methodology
+                    </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne"
+                    data-bs-parent="#aboutAccordion">
+                    <div class="accordion-body">
+                        <h5>Simulation Methodology</h5>
+                        <p>This simulator models a Magic: The Gathering scenario where your deck contains a mix of
+                            spells
+                            and mana cards. For each simulation:
+                        </p>
+                        <ul>
+                            <li>The deck is shuffled, then cards are drawn over several turns.</li>
+                            <li>"Dead" spells are spells you cannot cast (insufficient mana sources).</li>
+                            <li>We also track which single-color pip helps the most to reduce dead spells.</li>
+                        </ul>
+                        <h5>Uncolored Mana & Numeric Prefixes</h5>
+                        <p>Use numeric prefixes and <code>*</code> for generic mana. Examples:</p>
+                        <ul>
+                            <li><code>U</code> = requires 1 blue pip</li>
+                            <li><code>3U</code> = requires 3 blue pips</li>
+                            <li><code>4*</code> = requires 4 generic mana</li>
+                            <li><code>4*U2W</code> = requires 4 generic mana, 1 blue, 2 white</li>
+                        </ul>
+                        <h5>Charts</h5>
+                        <ul>
+                            <li><strong>Top chart:</strong> Bar chart of how often each number of dead spells occurs per
+                                draw step.</li>
+                            <li><strong>Bottom chart:</strong> Line chart showing how often switching a land to each
+                                color is optimal.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Two-column row: left = settings, right = results -->
         <div class="row">
-            <!-- Left Column: Form -->
-            <div class="col-md-4 mb-4">
+            <!-- Left (Narrow) Column: Simulation Settings -->
+            <div class="col-md-3 mb-4">
                 <div class="card">
                     <div class="card-header bg-primary text-white">
                         Simulation Settings
@@ -184,73 +224,26 @@
                 </div>
             </div>
 
-            <!-- Right Column: Results -->
-            <div class="col-md-8">
-                <!-- Accordion for "About" and "Methodology" -->
-                <div class="accordion mb-4" id="aboutAccordion">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingOne">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                                About & Methodology
-                            </button>
-                        </h2>
-                        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne"
-                            data-bs-parent="#aboutAccordion">
-                            <div class="accordion-body">
-                                <h5>Simulation Methodology</h5>
-                                <p>This simulator models a Magic: The Gathering scenario where your deck contains a mix
-                                    of spells
-                                    and mana cards. For each simulation:
-                                </p>
-                                <ul>
-                                    <li>The deck is shuffled, then cards are drawn over several turns.</li>
-                                    <li>"Dead" spells are spells you cannot cast (insufficient mana sources).</li>
-                                    <li>We also track which single-color pip helps the most to reduce dead spells.</li>
-                                </ul>
-                                <h5>Uncolored Mana & Numeric Prefixes</h5>
-                                <p>Use numeric prefixes and <code>*</code> for generic mana. Examples:</p>
-                                <ul>
-                                    <li><code>U</code> = requires 1 blue pip</li>
-                                    <li><code>3U</code> = requires 3 blue pips</li>
-                                    <li><code>4*</code> = requires 4 generic mana</li>
-                                    <li><code>4*U2W</code> = requires 4 generic mana, 1 blue, 2 white</li>
-                                </ul>
-                                <h5>Charts</h5>
-                                <ul>
-                                    <li><strong>Top chart:</strong> Bar chart of how often each number of dead spells
-                                        occurs per draw step.</li>
-                                    <li><strong>Bottom chart:</strong> Line chart showing how often switching a land to
-                                        each color is optimal.</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card for results -->
+            <!-- Right (Wider) Column: Results -->
+            <div class="col-md-9">
                 <div class="card">
                     <div class="card-header bg-secondary text-white">
                         Simulation Results
                     </div>
                     <div class="card-body">
+                        <!-- Alert/error area -->
                         <div id="alert-area"></div>
-                        <div class="row">
-                            <!-- Table container -->
-                            <div class="col-md-4 mb-3">
-                                <div id="summary-table"></div>
-                            </div>
-                            <!-- Chart container -->
-                            <div class="col-md-8">
-                                <div id="chart-result" class="border p-2 bg-white rounded"></div>
-                            </div>
-                        </div>
+
+                        <!-- Table of summary stats (above chart) -->
+                        <div id="summary-table" class="mb-3"></div>
+
+                        <!-- Chart container with overflow auto -->
+                        <div id="chart-result" class="border p-2 bg-white rounded"></div>
                     </div>
                 </div>
-
-            </div> <!-- End col-md-8 -->
-        </div> <!-- End row -->
-    </div> <!-- End container -->
+            </div>
+        </div>
+    </div>
 
     <!-- Optional Footer -->
     <footer class="fixed-bottom bg-light text-center p-2">
@@ -351,13 +344,13 @@
                 });
         }
 
-        // Intercept the form submit (in case user presses Enter)
+        // Intercept the form submit
         document.getElementById('simulation-form').addEventListener('submit', function (e) {
             e.preventDefault();
             runSimulation();
         });
 
-        // The big "Run Simulation" button in the navbar
+        // "Run Simulation" button in navbar
         document.getElementById('runSimulationHeader').addEventListener('click', runSimulation);
     </script>
 </body>
