@@ -43,29 +43,16 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 
 ### TODO
 
-"Dead spells in hand"
-"Mana pip most needed"
+* Update the About
 
-* Compute some summary statistics and display them in a table at the top of the charts
-  -- percent of turns with 0 dead spells
-  -- percent of runs with 0 dead spells
-  -- expected number of dead spells per turn
-  -- most desired pip color
-  -- least desired pip color (of those used in spells)
+* Add an example in the About for how to enter the JSON
 
-* Keep track of the number of dead spells in each simulation and plot the distribution of dead spell count as stacked bars over ste
-
-* Make the chart widths proportional to the number of draw steps so they appear more fixed
+* Create four sectionss -- title / run & help / input / output, and improve the visual design
 
 * Add tooltips
 
 * Limit the number of simulations that can be run to 1,000
-
-* Limit the number of draw steps to 10 (and make that the default)
-* Have the `0` draw step be the starting hand, and go up from there 10 draws
-* In the X-axis for the charts, change the `0` to be `"start"`
-
-* Ask ChatGPT to style this so that it's prettier
+* Limit the number of draw steps to 20
 
 * Keep track of a version number displayed somewhere on the main page
 (maybe in the main page)
@@ -73,9 +60,7 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 * Setup some CI and unit testing
 
 * Share with Alex
-
 * Share in LLU, 17lands
-
 * Connect to LoL and share there as well
 
 ### Other
