@@ -43,8 +43,6 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 
 ### TODO
 
-* Rotate the turn number labels
-
 * Sentence case everywhere
 * Enhance the Methodology section
 * Add a FAQ section

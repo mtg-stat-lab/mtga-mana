@@ -52,7 +52,8 @@ class DistributionChart(BaseChart):
                 x=alt.X(
                     "turn_label:N",
                     title="Turn number",
-                    scale=alt.Scale(domain=turn_sort)
+                    scale=alt.Scale(domain=turn_sort),
+                    axis=alt.Axis(labelAngle=0)
                 ),
                 y=alt.Y(
                     "percent:Q",
@@ -112,6 +113,7 @@ class BestColorChart(BaseChart):
                 x=alt.X(
                     "turn_label:N",
                     scale=alt.Scale(domain=turn_sort),
+                    axis=alt.Axis(labelAngle=0),
                     title="Turn number"
                 ),
                 y=alt.Y(
