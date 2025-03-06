@@ -30,12 +30,12 @@ def simulate():
         spells_dict = json.loads(data['spells_json'])
         mana_dict = json.loads(data['mana_json'])
 
-        # NEW/UPDATED: parse the on_play_or_draw field
+        # Parse the on_play_or_draw field
         on_play_or_draw = data.get('on_play_or_draw', 'play')
         on_play = (on_play_or_draw.lower() == 'play')
 
-        # run the simulation
-        df_summary, df_distribution, zero_dead_runs_count = run_simulation(
+        # Run the simulation
+        df_summary, df_distribution = run_simulation(
             spells_dict,
             mana_dict,
             total_deck_size=deck_size,
@@ -43,12 +43,14 @@ def simulate():
             simulations=simulations,
             seed=seed,
             initial_hand_size=hand_size,
-            on_play=on_play  # pass the boolean
+            on_play=on_play
         )
 
         # Create the Vega-Lite chart
         chart = create_altair_charts(df_summary, df_distribution)
         chart_spec = chart.to_dict()
+
+        # Calculate statistics
 
         # 1) Percent of turns with 0 dead spells
         total_turns = (draws + 1) * simulations
@@ -56,26 +58,21 @@ def simulate():
         num_zero_dead = zero_dead_rows['frequency'].sum()
         pct_turns_zero_dead = num_zero_dead / total_turns
 
-        # 2) Percent of runs with 0 dead spells
-        pct_runs_zero_dead = zero_dead_runs_count / simulations
-
-        # 3) Expected number of dead spells per turn
+        # 2) Expected number of dead spells per turn
         df_distribution['weighted_dead'] = df_distribution['dead_spells'] * df_distribution['frequency']
         total_dead_spells = df_distribution['weighted_dead'].sum()
         expected_dead_per_turn = total_dead_spells / total_turns
 
-        # 4) Most desired pip color
+        # 3) Most desired pip color
         color_fractions = {}
         for c in CANONICAL_COLORS:
             frac_sum = df_summary[f"pct_optimal_{c}"].sum()
             color_fractions[c] = frac_sum / (draws + 1)
         most_desired_color = max(color_fractions, key=color_fractions.get)
 
-        # 5) Least desired pip color (restricted to those used in spells)
+        # 4) Least desired pip color (restricted to those used in spells)
         used_spell_colors = set()
         for cost_str in spells_dict.keys():
-            # We won't parse the cost string fully here. Just check letters W/U/B/R/G.
-            # A robust approach is to parse fully, but let's keep it short:
             for ch in cost_str:
                 if ch in CANONICAL_COLORS:
                     used_spell_colors.add(ch)
@@ -87,7 +84,6 @@ def simulate():
 
         stats = {
             "pct_turns_zero_dead": pct_turns_zero_dead,
-            "pct_runs_zero_dead": pct_runs_zero_dead,
             "expected_dead_per_turn": expected_dead_per_turn,
             "most_desired_color": most_desired_color,
             "least_desired_color": least_desired_color
