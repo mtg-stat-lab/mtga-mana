@@ -1,265 +1,150 @@
 <!doctype html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Mana Simulation</title>
-    <!-- Include Vega, Vega-Lite, and vega-embed libraries -->
+    <title>MTG "Got Pips" Mana Simulator</title>
+    <!-- Required meta tags for Bootstrap -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Vega, Vega-Lite, vega-embed libraries -->
     <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+
     <style>
+        /* Override some spacing for the top-level container */
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            background-color: #f8f9fa;
+            margin-bottom: 60px;
         }
 
-        /* Header area for Run Simulation button and About box */
-        .header {
-            display: flex;
-            align-items: flex-start;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .header button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        /* Collapsible help box styling */
-        details.documentation {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            background-color: #f9f9f9;
-        }
-
-        details.documentation summary {
+        .tooltip-help {
+            color: #0d6efd;
             font-weight: bold;
-            font-size: 18px;
-            cursor: pointer;
-        }
-
-        .container {
-            display: flex;
-        }
-
-        .form-container {
-            width: 20%;
-        }
-
-        .result-container {
-            width: 80%;
-            padding-left: 20px;
-            min-height: 300px;
-        }
-
-        /* Side-by-side container for table (left) and chart (right) */
-        .result-split {
-            display: flex;
-            gap: 20px;
-        }
-
-        #summary-table {
-            flex: 1;
-            max-width: 300px;
-        }
-
-        #chart-result {
-            flex: 2;
-        }
-
-        /* Make the table look more consistent with Altair's default style */
-        .summary-stats-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-            color: #333;
-        }
-
-        .summary-stats-table th,
-        .summary-stats-table td {
-            text-align: left;
-            padding: 8px 12px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .summary-stats-table th {
-            background-color: #f7f7f7;
-            font-weight: bold;
-        }
-
-        .summary-stats-table tr:nth-child(even) {
-            background-color: #fbfbfb;
-        }
-
-        input,
-        textarea {
-            width: 100%;
-            padding: 8px;
-            margin: 4px 0 10px 0;
-            box-sizing: border-box;
-        }
-
-        textarea {
-            height: 180px;
-        }
-
-        label {
-            font-weight: bold;
-        }
-
-        /* Hide form's own button so we use the big header button instead */
-        .form-container button {
-            display: none;
-        }
-
-        /* Spinner styling */
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            vertical-align: middle;
-            margin-right: 10px;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Tooltip styling */
-        .tooltip {
-            position: relative;
             cursor: help;
-            color: blue;
-            font-weight: bold;
         }
 
-        .tooltip::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 125%;
-            left: 0;
-            background-color: #333;
-            color: #fff;
-            padding: 5px;
-            border-radius: 4px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease-in-out;
-            z-index: 10;
+        .tooltip-help:hover {
+            text-decoration: underline;
         }
 
-        .tooltip:hover::after {
-            opacity: 1;
+        /* Custom styling for the JSON textareas so they’re easy to read */
+        textarea.form-control {
+            font-family: monospace, "Courier New", Courier;
+            white-space: pre;
+        }
+
+        /* Chart area takes up available space with minimal margin */
+        #chart-result {
+            min-height: 300px;
         }
     </style>
 </head>
 
 <body>
-    <h2>MTG "Got Pips" Mana Simulator</h2>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                MTG "Got Pips" Mana Simulator
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+                aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <!-- Right side of the navbar -->
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <button id="runSimulationHeader" class="btn btn-primary my-2 my-sm-0" type="button">
+                            Run Simulation
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-    <!-- Header area with Run Simulation button and About section -->
-    <div class="header">
-        <button id="runSimulationHeader">Run Simulation</button>
-        <details class="documentation">
-            <summary>About</summary>
-            <h2>Simulation Methodology</h2>
-            <p>
-                This simulator models a Magic: The Gathering scenario where your deck contains a mix of spells and mana
-                cards. For each simulation:
-            </p>
-            <ul>
-                <li>The deck is shuffled, then cards are drawn over several turns.</li>
-                <li>The app evaluates your hand to determine "dead" spells — spells you cannot cast yet.</li>
-                <li>A spell is "dead" if you don't have enough mana sources (both color and total) by that turn.</li>
-                <li>The app also checks which single-color pip would most help reduce dead spells.</li>
-            </ul>
-            <p>
-                Running many simulations gives probabilities and averages. We do not account for special card abilities
-                or partial mana sources beyond the color pips themselves.
-            </p>
-            <h2>Uncolored Mana &amp; Numeric Prefixes</h2>
-            <p>
-                You can specify spell costs using numeric prefixes and the <code>*</code> symbol. Examples:
-            </p>
-            <ul>
-                <li><code>U</code> = requires 1 blue pip</li>
-                <li><code>3U</code> = requires 3 blue pips</li>
-                <li><code>4*</code> = requires 4 generic mana</li>
-                <li><code>4*U2W</code> = requires 4 generic mana, 1 blue, 2 white</li>
-            </ul>
-            <h2>Chart Explanation</h2>
-            <ul>
-                <li><strong>Top Chart:</strong> Bar chart of how often each number of dead spells occurs at each draw
-                    step.</li>
-                <li><strong>Bottom Chart:</strong> Line chart showing how often switching a land to a given color is
-                    optimal.
-                </li>
-            </ul>
-        </details>
-    </div>
-
+    <!-- Main container -->
     <div class="container">
-        <div class="form-container">
-            <form id="simulation-form">
-                <label for="deck_size">Deck Size:
-                    <span class="tooltip"
-                        data-tooltip="Total cards in your deck, including spells, mana, and any filler.">?</span>
-                </label>
-                <input type="number" id="deck_size" name="deck_size" value="40" required>
+        <div class="row">
+            <!-- Left Column: Form -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        Simulation Settings
+                    </div>
+                    <div class="card-body">
+                        <form id="simulation-form">
+                            <div class="mb-3">
+                                <label for="deck_size" class="form-label">
+                                    Deck Size
+                                    <span class="tooltip-help"
+                                        title="Total cards in your deck, including spells, mana, and filler.">?</span>
+                                </label>
+                                <input type="number" class="form-control" id="deck_size" name="deck_size" value="40"
+                                    required>
+                            </div>
 
-                <label for="hand_size">Initial Hand Size:
-                    <span class="tooltip" data-tooltip="Number of cards in your opening hand.">?</span>
-                </label>
-                <input type="number" id="hand_size" name="hand_size" value="7" required>
+                            <div class="mb-3">
+                                <label for="hand_size" class="form-label">
+                                    Initial Hand Size
+                                    <span class="tooltip-help" title="Number of cards in your opening hand.">?</span>
+                                </label>
+                                <input type="number" class="form-control" id="hand_size" name="hand_size" value="7"
+                                    required>
+                            </div>
 
-                <label for="draws">Number of Draw Steps:
-                    <span class="tooltip"
-                        data-tooltip="Number of additional turns to simulate; you draw 1 card each turn.">?</span>
-                </label>
-                <input type="number" id="draws" name="draws" value="10" required>
+                            <div class="mb-3">
+                                <label for="draws" class="form-label">
+                                    Number of Draw Steps
+                                    <span class="tooltip-help"
+                                        title="Number of additional turns to simulate; you draw 1 card each turn.">?</span>
+                                </label>
+                                <input type="number" class="form-control" id="draws" name="draws" value="10" required>
+                            </div>
 
-                <label for="simulations">Number of Simulations:
-                    <span class="tooltip"
-                        data-tooltip="The number of simulated trials (higher = more accurate).">?</span>
-                </label>
-                <input type="number" id="simulations" name="simulations" value="1000" required>
+                            <div class="mb-3">
+                                <label for="simulations" class="form-label">
+                                    Number of Simulations
+                                    <span class="tooltip-help"
+                                        title="The number of simulated trials (higher = more accurate).">?</span>
+                                </label>
+                                <input type="number" class="form-control" id="simulations" name="simulations"
+                                    value="1000" required>
+                            </div>
 
-                <label for="seed">Random Seed:
-                    <span class="tooltip" data-tooltip="Set this for reproducible results.">?</span>
-                </label>
-                <input type="number" id="seed" name="seed" value="42" required>
+                            <div class="mb-3">
+                                <label for="seed" class="form-label">
+                                    Random Seed
+                                    <span class="tooltip-help" title="Set this for reproducible results.">?</span>
+                                </label>
+                                <input type="number" class="form-control" id="seed" name="seed" value="42" required>
+                            </div>
 
-                <p>
-                    <label for="on_play_or_draw">On the Play or Draw
-                        <span class="tooltip"
-                            data-tooltip="Affects how many lands you've been able to play by each turn.">?</span>
-                    </label>
-                    <select id="on_play_or_draw" name="on_play_or_draw">
-                        <option value="play" selected>Play</option>
-                        <option value="draw">Draw</option>
-                    </select>
-                </p>
+                            <div class="mb-3">
+                                <label for="on_play_or_draw" class="form-label">
+                                    On the Play or Draw
+                                    <span class="tooltip-help"
+                                        title="Affects how many lands you've been able to play by each turn.">?</span>
+                                </label>
+                                <select id="on_play_or_draw" name="on_play_or_draw" class="form-select">
+                                    <option value="play" selected>Play</option>
+                                    <option value="draw">Draw</option>
+                                </select>
+                            </div>
 
-                <label for="spells_json">Spells (JSON):
-                    <span class="tooltip"
-                        data-tooltip="Map of spell costs (e.g. 'U', '4*U2W') to the quantity in your deck.">?</span>
-                </label>
-                <textarea id="spells_json" name="spells_json">
-{
+                            <div class="mb-3">
+                                <label for="spells_json" class="form-label">
+                                    Spells (JSON)
+                                    <span class="tooltip-help"
+                                        title="Map of spell costs (e.g. 'U', '4*U2W') to the quantity in your deck.">?</span>
+                                </label>
+                                <textarea id="spells_json" name="spells_json" class="form-control" rows="5">{
     "G": 2,
     "U": 1,
     "*G": 3,
@@ -277,42 +162,125 @@
     "3*U": 1,
     "3*UU": 2,
     "4*GG": 1
-}
-                </textarea>
+}</textarea>
+                            </div>
 
-                <label for="mana_json">Mana (JSON):
-                    <span class="tooltip"
-                        data-tooltip="Map of mana source types (e.g. 'U', 'UW') to their count.">?</span>
-                </label>
-                <textarea id="mana_json" name="mana_json">
-{
+                            <div class="mb-3">
+                                <label for="mana_json" class="form-label">
+                                    Mana (JSON)
+                                    <span class="tooltip-help"
+                                        title="Map of mana source types (e.g. 'U', 'UW') to their count.">?</span>
+                                </label>
+                                <textarea id="mana_json" name="mana_json" class="form-control" rows="5">{
     "G": 7,
     "U": 4,
     "W": 3,
     "UW": 3,
     "UWG": 2
-}
-                </textarea>
-            </form>
-        </div>
-
-        <div class="result-container">
-            <div class="result-split">
-                <div id="summary-table"></div>
-                <div id="chart-result"></div>
+}</textarea>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
+
+            <!-- Right Column: Results -->
+            <div class="col-md-8">
+                <!-- Accordion for "About" and "Methodology" -->
+                <div class="accordion mb-4" id="aboutAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                About & Methodology
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne"
+                            data-bs-parent="#aboutAccordion">
+                            <div class="accordion-body">
+                                <h5>Simulation Methodology</h5>
+                                <p>This simulator models a Magic: The Gathering scenario where your deck contains a mix
+                                    of spells
+                                    and mana cards. For each simulation:
+                                </p>
+                                <ul>
+                                    <li>The deck is shuffled, then cards are drawn over several turns.</li>
+                                    <li>"Dead" spells are spells you cannot cast (insufficient mana sources).</li>
+                                    <li>We also track which single-color pip helps the most to reduce dead spells.</li>
+                                </ul>
+                                <h5>Uncolored Mana & Numeric Prefixes</h5>
+                                <p>Use numeric prefixes and <code>*</code> for generic mana. Examples:</p>
+                                <ul>
+                                    <li><code>U</code> = requires 1 blue pip</li>
+                                    <li><code>3U</code> = requires 3 blue pips</li>
+                                    <li><code>4*</code> = requires 4 generic mana</li>
+                                    <li><code>4*U2W</code> = requires 4 generic mana, 1 blue, 2 white</li>
+                                </ul>
+                                <h5>Charts</h5>
+                                <ul>
+                                    <li><strong>Top chart:</strong> Bar chart of how often each number of dead spells
+                                        occurs per draw step.</li>
+                                    <li><strong>Bottom chart:</strong> Line chart showing how often switching a land to
+                                        each color is optimal.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card for results -->
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        Simulation Results
+                    </div>
+                    <div class="card-body">
+                        <div id="alert-area"></div>
+                        <div class="row">
+                            <!-- Table container -->
+                            <div class="col-md-4 mb-3">
+                                <div id="summary-table"></div>
+                            </div>
+                            <!-- Chart container -->
+                            <div class="col-md-8">
+                                <div id="chart-result" class="border p-2 bg-white rounded"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div> <!-- End col-md-8 -->
+        </div> <!-- End row -->
+    </div> <!-- End container -->
+
+    <!-- Optional Footer -->
+    <footer class="fixed-bottom bg-light text-center p-2">
+        <small class="text-muted">© 2025 Magic Tools, Inc.</small>
+    </footer>
+
+    <!-- Bootstrap JS (Popper + Bootstrap) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         function runSimulation() {
             const form = document.getElementById('simulation-form');
             const chartDiv = document.getElementById('chart-result');
             const summaryTableDiv = document.getElementById('summary-table');
+            const alertArea = document.getElementById('alert-area');
 
-            // Show a spinner while processing
-            chartDiv.innerHTML = '<div class="spinner"></div> Running simulation, please wait...';
-            summaryTableDiv.innerHTML = ''; // Clear previous table content
+            // Clear previous results
+            chartDiv.innerHTML = '';
+            summaryTableDiv.innerHTML = '';
+            alertArea.innerHTML = '';
+
+            // Show a spinner in the chart area while processing
+            chartDiv.innerHTML = `
+        <div class="d-flex align-items-center">
+          <div class="spinner-border text-primary me-2" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <strong>Running simulation, please wait...</strong>
+        </div>
+      `;
 
             // Gather form data
             const formData = new FormData(form);
@@ -330,37 +298,43 @@
                 .then(response => response.json())
                 .then(json => {
                     if (json.error) {
-                        chartDiv.innerHTML = 'Error: ' + json.error;
+                        // Display error
+                        chartDiv.innerHTML = '';
+                        alertArea.innerHTML = `
+              <div class="alert alert-danger" role="alert">
+                <strong>Error:</strong> ${json.error}
+              </div>
+            `;
                     } else {
                         const stats = json.stats;
                         let tableHTML = `
-                            <table class="summary-stats-table">
-                              <thead>
-                                <tr>
-                                  <th>Statistic</th>
-                                  <th>Value</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr>
-                                  <td>% of turns with 0 dead spells</td>
-                                  <td>${(stats.pct_turns_zero_dead * 100).toFixed(2)}%</td>
-                                </tr>
-                                <tr>
-                                  <td>Expected dead spells per turn</td>
-                                  <td>${stats.expected_dead_per_turn.toFixed(2)}</td>
-                                </tr>
-                                <tr>
-                                  <td>Most desired pip color</td>
-                                  <td>${stats.most_desired_color}</td>
-                                </tr>
-                                <tr>
-                                  <td>Least desired pip color</td>
-                                  <td>${stats.least_desired_color}</td>
-                                </tr>
-                              </tbody>
-                            </table>
-                        `;
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Statistic</th>
+                    <th>Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>% of turns with 0 dead spells</td>
+                    <td>${(stats.pct_turns_zero_dead * 100).toFixed(2)}%</td>
+                  </tr>
+                  <tr>
+                    <td>Expected dead spells per turn</td>
+                    <td>${stats.expected_dead_per_turn.toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td>Most desired pip color</td>
+                    <td>${stats.most_desired_color}</td>
+                  </tr>
+                  <tr>
+                    <td>Least desired pip color</td>
+                    <td>${stats.least_desired_color}</td>
+                  </tr>
+                </tbody>
+              </table>
+            `;
                         summaryTableDiv.innerHTML = tableHTML;
 
                         // Render the charts
@@ -368,7 +342,12 @@
                     }
                 })
                 .catch(error => {
-                    chartDiv.innerHTML = 'Error: ' + error;
+                    chartDiv.innerHTML = '';
+                    alertArea.innerHTML = `
+            <div class="alert alert-danger" role="alert">
+              <strong>Error:</strong> ${error}
+            </div>
+          `;
                 });
         }
 
@@ -378,7 +357,7 @@
             runSimulation();
         });
 
-        // The big "Run Simulation" button in the header
+        // The big "Run Simulation" button in the navbar
         document.getElementById('runSimulationHeader').addEventListener('click', runSimulation);
     </script>
 </body>
