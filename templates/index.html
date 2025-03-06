@@ -188,13 +188,25 @@
             <ul>
                 <li>The deck is shuffled, then cards are drawn over several turns.</li>
                 <li>The app evaluates your hand to determine "dead" spells.</li>
-                <li>A spell is considered "dead" if you don't have the mana color pips in hand to cast it.</li>
+                <li>A spell is considered "dead" if you don't have the mana color pips in hand to cast it (and enough
+                    lands in play, if "on the play/draw" is considered).</li>
                 <li>The app determines which extra color mana pip—if added—would most reduce your "dead" spells.</li>
             </ul>
             <p>
                 Running many simulations lets us estimate probabilities and averages that are then visualized.
-                Note that we aren't keeping track of uncolored mana requirements or other special card abilities.
+                Note that we aren't keeping track of other special card abilities or uncolored mana sources—only the
+                pips themselves.
             </p>
+            <h2>Uncolored Mana &amp; Numeric Prefixes</h2>
+            <p>
+                You can specify spell costs using numeric prefixes and the <code>*</code> symbol. Some examples:
+            </p>
+            <ul>
+                <li><code>U</code> = requires 1 blue pip</li>
+                <li><code>3U</code> = requires 3 blue pips</li>
+                <li><code>4*</code> = requires 4 mana of any color</li>
+                <li><code>4*U2W</code> = requires 4 generic mana, 1 blue, and 2 white</li>
+            </ul>
             <h2>Chart Explanation</h2>
             <ul>
                 <li><strong>Top Chart:</strong> Probability of having one or more dead spells at each draw step.</li>
@@ -237,18 +249,41 @@
                 </label>
                 <input type="number" id="seed" name="seed" value="42" required>
 
+                <!-- NEW FIELD: "On the Play or Draw?" -->
+                <p>
+                    <label for="on_play_or_draw">On the Play or Draw
+                        <span class="tooltip"
+                            data-tooltip="This affects how many lands you could have played by each turn.">?</span>
+                    </label>
+                    <select id="on_play_or_draw" name="on_play_or_draw">
+                        <option value="play" selected>Play</option>
+                        <option value="draw">Draw</option>
+                    </select>
+                </p>
+
                 <label for="spells_json">Spells (JSON):
                     <span class="tooltip"
-                        data-tooltip="JSON object mapping spell costs (e.g. 'U', 'UB') to the number of spells in your deck.">?</span>
+                        data-tooltip="JSON object mapping spell costs (e.g. 'U', '4*U2W') to the number of spells in your deck.">?</span>
                 </label>
                 <textarea id="spells_json" name="spells_json">
 {
-  "U": 6,
-  "B": 5,
-  "W": 4,
-  "WB": 1,
-  "UB": 1,
-  "WU": 1
+    "G": 2,
+    "U": 1,
+    "*G": 3,
+    "GW": 2,
+    "GU": 1,
+    "*U": 1,
+    "*G": 2,
+    "2*U": 1,
+    "2*G": 1,
+    "3*": 1,
+    "2*W": 1,
+    "2*G": 1,
+    "2*GW": 1,
+    "3*G": 1,
+    "3*U": 1,
+    "3*UU": 2,
+    "4*GG": 1
 }
                 </textarea>
 
@@ -258,13 +293,11 @@
                 </label>
                 <textarea id="mana_json" name="mana_json">
 {
-  "U": 5,
-  "B": 4,
-  "W": 4,
-  "UB": 1,
-  "WB": 1,
-  "WU": 1,
-  "WUBRG": 1
+    "G": 7,
+    "U": 4,
+    "W": 3,
+    "UW": 3,
+    "UWG": 2
 }
                 </textarea>
             </form>
@@ -285,7 +318,7 @@
             const chartDiv = document.getElementById('chart-result');
             const summaryTableDiv = document.getElementById('summary-table');
 
-            // Show spinner in the chart area
+            // Show a spinner in the chart area
             chartDiv.innerHTML = '<div class="spinner"></div> Running simulation, please wait...';
             summaryTableDiv.innerHTML = ''; // clear old table
 
@@ -318,10 +351,6 @@
                                 </tr>
                               </thead>
                               <tbody>
-                                <tr>
-                                  <td>% of runs with 0 dead spells</td>
-                                  <td>${(stats.pct_runs_zero_dead * 100).toFixed(2)}%</td>
-                                </tr>                                
                                 <tr>
                                   <td>% of turns with 0 dead spells</td>
                                   <td>${(stats.pct_turns_zero_dead * 100).toFixed(2)}%</td>

@@ -30,7 +30,11 @@ def simulate():
         spells_dict = json.loads(data['spells_json'])
         mana_dict = json.loads(data['mana_json'])
 
-        # Modified run: returns df_summary, df_distribution, zero_dead_runs_count
+        # NEW/UPDATED: parse the on_play_or_draw field
+        on_play_or_draw = data.get('on_play_or_draw', 'play')
+        on_play = (on_play_or_draw.lower() == 'play')
+
+        # run the simulation
         df_summary, df_distribution, zero_dead_runs_count = run_simulation(
             spells_dict,
             mana_dict,
@@ -38,7 +42,8 @@ def simulate():
             draws=draws,
             simulations=simulations,
             seed=seed,
-            initial_hand_size=hand_size
+            initial_hand_size=hand_size,
+            on_play=on_play  # pass the boolean
         )
 
         # Create the Vega-Lite chart
@@ -69,9 +74,11 @@ def simulate():
         # 5) Least desired pip color (restricted to those used in spells)
         used_spell_colors = set()
         for cost_str in spells_dict.keys():
+            # We won't parse the cost string fully here. Just check letters W/U/B/R/G.
+            # A robust approach is to parse fully, but let's keep it short:
             for ch in cost_str:
-                used_spell_colors.add(ch)
-        used_spell_colors = used_spell_colors.intersection(CANONICAL_COLORS)
+                if ch in CANONICAL_COLORS:
+                    used_spell_colors.add(ch)
 
         if used_spell_colors:
             least_desired_color = min(used_spell_colors, key=lambda c: color_fractions[c])
