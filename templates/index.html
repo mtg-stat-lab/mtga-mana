@@ -1,4 +1,3 @@
-<!-- ===== ./templates/index.html ===== -->
 <!doctype html>
 <html lang="en">
 
@@ -109,7 +108,7 @@
                     <h5>Charts</h5>
                     <ul>
                         <li><strong>Distribution of Dead Spells:</strong> Bar chart of how often
-                            each number of dead spells occurs.</li>
+                            each number of dead spells occurs (except 0).</li>
                         <li><strong>Best Color to Replace a Land:</strong> How often switching
                             a land to each color is optimal.</li>
                     </ul>
@@ -264,29 +263,9 @@
                     <div class="card-header bg-secondary text-white">
                         Simulation Results
                     </div>
-                    <div class="card-body">
-                        <!-- Alert/error area -->
-                        <div id="alert-area"></div>
-
-                        <!-- Summary stat cards -->
-                        <div id="summary-cards" class="mb-3"></div>
-
-                        <!-- First chart (Distribution) -->
-                        <div class="card mb-3 bg-light">
-                            <div class="card-header fw-bold">
-                                Distribution of Dead Spells
-                            </div>
-                            <div class="card-body" id="distribution-chart"></div>
-                        </div>
-
-                        <!-- Second chart (Best color) -->
-                        <div class="card mb-3 bg-light">
-                            <div class="card-header fw-bold">
-                                Best Color to Replace a Land
-                            </div>
-                            <div class="card-body" id="best-color-chart"></div>
-                        </div>
-
+                    <!-- We'll replace this entire card-body dynamically -->
+                    <div class="card-body" id="results-container">
+                        <!-- Initially empty; we fill with spinner or results at runtime -->
                     </div>
                 </div>
             </div>
@@ -304,29 +283,20 @@
 
     <script>
         function runSimulation() {
+            // Grab our forms and containers
             const form = document.getElementById('simulation-form');
-            const alertArea = document.getElementById('alert-area');
-            const summaryCardsDiv = document.getElementById('summary-cards');
+            const resultsContainer = document.getElementById('results-container');
 
-            // Chart containers
-            const distChartDiv = document.getElementById('distribution-chart');
-            const bestColorChartDiv = document.getElementById('best-color-chart');
-
-            // Clear previous results
-            alertArea.innerHTML = '';
-            summaryCardsDiv.innerHTML = '';
-            distChartDiv.innerHTML = '';
-            bestColorChartDiv.innerHTML = '';
-
-            // Show a spinner or some loading message
-            distChartDiv.innerHTML = `
-                <div class="d-flex align-items-center">
-                    <div class="spinner-border text-primary me-2" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <strong>Running simulation, please wait...</strong>
-                </div>
-            `;
+            // 1) As soon as the user clicks "Run Simulation", clear everything
+            //    and show ONLY the spinner message in #results-container.
+            resultsContainer.innerHTML = `
+        <div class="d-flex align-items-center">
+          <div class="spinner-border text-primary me-2" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <strong>Running simulation, please wait...</strong>
+        </div>
+      `;
 
             // Gather form data
             const formData = new FormData(form);
@@ -344,92 +314,120 @@
                 .then(response => response.json())
                 .then(json => {
                     if (json.error) {
-                        // Display error
-                        distChartDiv.innerHTML = '';
-                        alertArea.innerHTML = `
-                        <div class="alert alert-danger" role="alert">
-                            <strong>Error:</strong> ${json.error}
-                        </div>
-                    `;
+                        // Show error in the results container (no other content)
+                        resultsContainer.innerHTML = `
+            <div class="alert alert-danger" role="alert">
+              <strong>Error:</strong> ${json.error}
+            </div>
+          `;
                     } else {
-                        // Render summary stats
+                        // We have valid results. Rebuild the entire #results-container with:
+                        //  - Statistic cards in a light-grey card
+                        //  - Two separate chart cards, also in a light-grey background
+
                         const stats = json.stats;
                         const pctZeroDead = (stats.pct_turns_zero_dead * 100).toFixed(2);
                         const expDead = stats.expected_dead_per_turn.toFixed(2);
                         const mostColor = stats.most_desired_color;
                         const leastColor = stats.least_desired_color;
 
-                        // Build a row of small "statistic cards"
-                        let cardsHTML = `
-                      <div class="row row-cols-2 row-cols-md-4 g-2">
-                        <div class="col">
-                          <div class="card text-center border-0 bg-light">
-                            <div class="card-body p-2">
-                              <h6 class="card-title mb-1" style="font-size:0.85rem;">
-                                % of turns with 0 dead spells
-                              </h6>
-                              <p class="card-text fw-bold" style="font-size:1rem;">
-                                ${pctZeroDead}%
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="col">
-                          <div class="card text-center border-0 bg-light">
-                            <div class="card-body p-2">
-                              <h6 class="card-title mb-1" style="font-size:0.85rem;">
-                                Expected dead spells per turn
-                              </h6>
-                              <p class="card-text fw-bold" style="font-size:1rem;">
-                                ${expDead}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="col">
-                          <div class="card text-center border-0 bg-light">
-                            <div class="card-body p-2">
-                              <h6 class="card-title mb-1" style="font-size:0.85rem;">
-                                Most desired pip color
-                              </h6>
-                              <p class="card-text fw-bold" style="font-size:1rem;">
-                                ${mostColor}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="col">
-                          <div class="card text-center border-0 bg-light">
-                            <div class="card-body p-2">
-                              <h6 class="card-title mb-1" style="font-size:0.85rem;">
-                                Least desired pip color
-                              </h6>
-                              <p class="card-text fw-bold" style="font-size:1rem;">
-                                ${leastColor}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    `;
-                        summaryCardsDiv.innerHTML = cardsHTML;
+                        // Build the HTML for our "statistic cards"
+                        const statCardsHTML = `
+            <div class="row row-cols-2 row-cols-md-4 g-2">
+              <div class="col">
+                <div class="card text-center border-0 bg-light">
+                  <div class="card-body p-2">
+                    <h6 class="card-title mb-1" style="font-size:0.85rem;">
+                      % of turns with 0 dead spells
+                    </h6>
+                    <p class="card-text fw-bold" style="font-size:1rem;">
+                      ${pctZeroDead}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card text-center border-0 bg-light">
+                  <div class="card-body p-2">
+                    <h6 class="card-title mb-1" style="font-size:0.85rem;">
+                      Expected dead spells per turn
+                    </h6>
+                    <p class="card-text fw-bold" style="font-size:1rem;">
+                      ${expDead}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card text-center border-0 bg-light">
+                  <div class="card-body p-2">
+                    <h6 class="card-title mb-1" style="font-size:0.85rem;">
+                      Most desired pip color
+                    </h6>
+                    <p class="card-text fw-bold" style="font-size:1rem;">
+                      ${mostColor}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card text-center border-0 bg-light">
+                  <div class="card-body p-2">
+                    <h6 class="card-title mb-1" style="font-size:0.85rem;">
+                      Least desired pip color
+                    </h6>
+                    <p class="card-text fw-bold" style="font-size:1rem;">
+                      ${leastColor}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
 
-                        // Clear the spinner
-                        distChartDiv.innerHTML = '';
-                        bestColorChartDiv.innerHTML = '';
+                        // 2) Now populate the results container with:
+                        //    - a card for the stats
+                        //    - a card for the Distribution chart
+                        //    - a card for the Best Color chart
+                        resultsContainer.innerHTML = `
+            <!-- Stats card -->
+            <div class="card mb-3 bg-light">
+              <div class="card-header fw-bold">
+                Statistics
+              </div>
+              <div class="card-body" id="summary-cards">
+                ${statCardsHTML}
+              </div>
+            </div>
 
-                        // Render the two charts in separate containers
+            <!-- First chart card -->
+            <div class="card mb-3 bg-light">
+              <div class="card-header fw-bold">
+                Distribution of Dead Spells
+              </div>
+              <div class="card-body" id="distribution-chart"></div>
+            </div>
+
+            <!-- Second chart card -->
+            <div class="card mb-3 bg-light">
+              <div class="card-header fw-bold">
+                Best Color to Replace a Land
+              </div>
+              <div class="card-body" id="best-color-chart"></div>
+            </div>
+          `;
+
+                        // 3) Embed the two charts using Vega-Embed
                         vegaEmbed('#distribution-chart', json.dist_chart_spec);
                         vegaEmbed('#best-color-chart', json.best_color_chart_spec);
                     }
                 })
                 .catch(error => {
-                    distChartDiv.innerHTML = '';
-                    alertArea.innerHTML = `
-                    <div class="alert alert-danger" role="alert">
-                        <strong>Error:</strong> ${error}
-                    </div>
-                `;
+                    resultsContainer.innerHTML = `
+          <div class="alert alert-danger" role="alert">
+            <strong>Error:</strong> ${error}
+          </div>
+        `;
                 });
         }
 
