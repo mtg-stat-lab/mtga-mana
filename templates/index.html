@@ -75,9 +75,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
-            /* matches Altair's typical font sizing */
             color: #333;
-            /* darker text for clarity */
         }
 
         .summary-stats-table th,
@@ -85,7 +83,6 @@
             text-align: left;
             padding: 8px 12px;
             border-bottom: 1px solid #ddd;
-            /* soft horizontal lines */
         }
 
         .summary-stats-table th {
@@ -93,7 +90,6 @@
             font-weight: bold;
         }
 
-        /* Optional alternate row shading */
         .summary-stats-table tr:nth-child(even) {
             background-color: #fbfbfb;
         }
@@ -187,21 +183,30 @@
             </p>
             <ul>
                 <li>The deck is shuffled, then cards are drawn over several turns.</li>
-                <li>The app evaluates your hand to determine "dead" spells.</li>
-                <li>A spell is considered "dead" if you don't have the mana color pips in hand to cast it.</li>
-                <li>The app determines which extra color mana pip—if added—would most reduce your "dead" spells.</li>
+                <li>The app evaluates your hand to determine "dead" spells — spells you cannot cast yet.</li>
+                <li>A spell is "dead" if you don't have enough mana sources (both color and total) by that turn.</li>
+                <li>The app also checks which single-color pip would most help reduce dead spells.</li>
             </ul>
             <p>
-                Running many simulations lets us estimate probabilities and averages that are then visualized.
-                Note that we aren't keeping track of uncolored mana requirements or other special card abilities.
+                Running many simulations gives probabilities and averages. We do not account for special card abilities
+                or partial mana sources beyond the color pips themselves.
             </p>
+            <h2>Uncolored Mana &amp; Numeric Prefixes</h2>
+            <p>
+                You can specify spell costs using numeric prefixes and the <code>*</code> symbol. Examples:
+            </p>
+            <ul>
+                <li><code>U</code> = requires 1 blue pip</li>
+                <li><code>3U</code> = requires 3 blue pips</li>
+                <li><code>4*</code> = requires 4 generic mana</li>
+                <li><code>4*U2W</code> = requires 4 generic mana, 1 blue, 2 white</li>
+            </ul>
             <h2>Chart Explanation</h2>
             <ul>
-                <li><strong>Top Chart:</strong> Probability of having one or more dead spells at each draw step.</li>
-                <li><strong>Middle Chart:</strong> Stacked bar distribution of the number of dead spells in hand across
-                    all simulations for each draw step.</li>
-                <li><strong>Bottom Chart:</strong> Percentage of simulations where adding an extra mana pip of each
-                    color would have helped reduce dead spells.</li>
+                <li><strong>Top Chart:</strong> Bar chart of how often each number of dead spells occurs at each draw
+                    step.</li>
+                <li><strong>Bottom Chart:</strong> Line chart showing how often each color is the best extra pip to add.
+                </li>
             </ul>
         </details>
     </div>
@@ -211,67 +216,86 @@
             <form id="simulation-form">
                 <label for="deck_size">Deck Size:
                     <span class="tooltip"
-                        data-tooltip="Total number of cards in your deck, including spells, mana, and filler cards.">?</span>
+                        data-tooltip="Total cards in your deck, including spells, mana, and any filler.">?</span>
                 </label>
                 <input type="number" id="deck_size" name="deck_size" value="40" required>
 
                 <label for="hand_size">Initial Hand Size:
-                    <span class="tooltip" data-tooltip="Number of cards you start with in your opening hand.">?</span>
+                    <span class="tooltip" data-tooltip="Number of cards in your opening hand.">?</span>
                 </label>
                 <input type="number" id="hand_size" name="hand_size" value="7" required>
 
                 <label for="draws">Number of Draw Steps:
                     <span class="tooltip"
-                        data-tooltip="Number of turns to simulate; each turn you draw one extra card.">?</span>
+                        data-tooltip="Number of additional turns to simulate; you draw 1 card each turn.">?</span>
                 </label>
                 <input type="number" id="draws" name="draws" value="10" required>
 
                 <label for="simulations">Number of Simulations:
                     <span class="tooltip"
-                        data-tooltip="The number of iterations for the simulation (higher numbers yield more reliable estimates).">?</span>
+                        data-tooltip="The number of simulated trials (higher = more accurate).">?</span>
                 </label>
                 <input type="number" id="simulations" name="simulations" value="1000" required>
 
                 <label for="seed">Random Seed:
-                    <span class="tooltip" data-tooltip="Seed value to ensure reproducible simulation results.">?</span>
+                    <span class="tooltip" data-tooltip="Set this for reproducible results.">?</span>
                 </label>
                 <input type="number" id="seed" name="seed" value="42" required>
 
+                <p>
+                    <label for="on_play_or_draw">On the Play or Draw
+                        <span class="tooltip"
+                            data-tooltip="Affects how many lands you've been able to play by each turn.">?</span>
+                    </label>
+                    <select id="on_play_or_draw" name="on_play_or_draw">
+                        <option value="play" selected>Play</option>
+                        <option value="draw">Draw</option>
+                    </select>
+                </p>
+
                 <label for="spells_json">Spells (JSON):
                     <span class="tooltip"
-                        data-tooltip="JSON object mapping spell costs (e.g. 'U', 'UB') to the number of spells in your deck.">?</span>
+                        data-tooltip="Map of spell costs (e.g. 'U', '4*U2W') to the quantity in your deck.">?</span>
                 </label>
                 <textarea id="spells_json" name="spells_json">
 {
-  "U": 6,
-  "B": 5,
-  "W": 4,
-  "WB": 1,
-  "UB": 1,
-  "WU": 1
+    "G": 2,
+    "U": 1,
+    "*G": 3,
+    "GW": 2,
+    "GU": 1,
+    "*U": 1,
+    "*G": 2,
+    "2*U": 1,
+    "2*G": 1,
+    "3*": 1,
+    "2*W": 1,
+    "2*G": 1,
+    "2*GW": 1,
+    "3*G": 1,
+    "3*U": 1,
+    "3*UU": 2,
+    "4*GG": 1
 }
                 </textarea>
 
                 <label for="mana_json">Mana (JSON):
                     <span class="tooltip"
-                        data-tooltip="JSON object mapping mana types (e.g. 'U', 'WUBRG') to the number of mana cards in your deck.">?</span>
+                        data-tooltip="Map of mana source types (e.g. 'U', 'UW') to their count.">?</span>
                 </label>
                 <textarea id="mana_json" name="mana_json">
 {
-  "U": 5,
-  "B": 4,
-  "W": 4,
-  "UB": 1,
-  "WB": 1,
-  "WU": 1,
-  "WUBRG": 1
+    "G": 7,
+    "U": 4,
+    "W": 3,
+    "UW": 3,
+    "UWG": 2
 }
                 </textarea>
             </form>
         </div>
 
         <div class="result-container">
-            <!-- We have a split layout for the summary table (left) and chart (right). -->
             <div class="result-split">
                 <div id="summary-table"></div>
                 <div id="chart-result"></div>
@@ -285,18 +309,18 @@
             const chartDiv = document.getElementById('chart-result');
             const summaryTableDiv = document.getElementById('summary-table');
 
-            // Show spinner in the chart area
+            // Show a spinner while processing
             chartDiv.innerHTML = '<div class="spinner"></div> Running simulation, please wait...';
-            summaryTableDiv.innerHTML = ''; // clear old table
+            summaryTableDiv.innerHTML = ''; // Clear previous table content
 
-            // Collect form data into an object
+            // Gather form data
             const formData = new FormData(form);
             const data = {};
             formData.forEach((value, key) => {
                 data[key] = value;
             });
 
-            // Post to /simulate
+            // Send POST to /simulate
             fetch('/simulate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -307,7 +331,6 @@
                     if (json.error) {
                         chartDiv.innerHTML = 'Error: ' + json.error;
                     } else {
-                        // Build the stats table
                         const stats = json.stats;
                         let tableHTML = `
                             <table class="summary-stats-table">
@@ -318,10 +341,6 @@
                                 </tr>
                               </thead>
                               <tbody>
-                                <tr>
-                                  <td>% of runs with 0 dead spells</td>
-                                  <td>${(stats.pct_runs_zero_dead * 100).toFixed(2)}%</td>
-                                </tr>                                
                                 <tr>
                                   <td>% of turns with 0 dead spells</td>
                                   <td>${(stats.pct_turns_zero_dead * 100).toFixed(2)}%</td>
@@ -343,7 +362,7 @@
                         `;
                         summaryTableDiv.innerHTML = tableHTML;
 
-                        // Embed the Vega-Lite chart
+                        // Render the charts
                         vegaEmbed('#chart-result', json.chart_spec);
                     }
                 })
@@ -352,13 +371,13 @@
                 });
         }
 
-        // Listen for form submission (e.g. pressing Enter in a field).
+        // Intercept the form submit (in case user presses Enter)
         document.getElementById('simulation-form').addEventListener('submit', function (e) {
             e.preventDefault();
             runSimulation();
         });
 
-        // Listen for the header Run Simulation button
+        // The big "Run Simulation" button in the header
         document.getElementById('runSimulationHeader').addEventListener('click', runSimulation);
     </script>
 </body>
