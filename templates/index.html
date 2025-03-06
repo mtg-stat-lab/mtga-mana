@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>MTG "Got Pips" Mana Simulator</title>
+    <title>Mathamagic Mana Simulator</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -15,6 +15,12 @@
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
 
     <style>
+        /* Custom dark blue background color for the navbar & footer */
+        .bg-custom {
+            background-color: #003366 !important;
+            /* Adjust this hex if you'd like a lighter/darker shade */
+        }
+
         body {
             background-color: #f8f9fa;
             margin-bottom: 60px;
@@ -47,11 +53,11 @@
 </head>
 
 <body>
-    <!-- Sticky Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top mb-3">
+    <!-- Sticky Navbar with dark blue background -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-custom shadow-sm sticky-top mb-3">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
-                MTG "Got Pips" Mana Simulator
+                Mathamagic Mana Simulator
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
                 aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,17 +65,17 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <!-- Methodology modal trigger -->
+                    <!-- methodology modal trigger -->
                     <li class="nav-item me-2">
-                        <button class="btn btn-outline-secondary my-2 my-sm-0" type="button" data-bs-toggle="modal"
+                        <button class="btn btn-outline-light my-2 my-sm-0" type="button" data-bs-toggle="modal"
                             data-bs-target="#aboutModal">
                             Methodology
                         </button>
                     </li>
-                    <!-- Run Simulation trigger -->
+                    <!-- run simulation trigger -->
                     <li class="nav-item">
                         <button id="runSimulationHeader" class="btn btn-primary my-2 my-sm-0" type="button">
-                            Run Simulation
+                            Run simulation
                         </button>
                     </li>
                 </ul>
@@ -77,7 +83,7 @@
         </div>
     </nav>
 
-    <!-- Modal: Methodology -->
+    <!-- modal: methodology -->
     <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -87,7 +93,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <h5>Simulation Methodology</h5>
+                    <h5>Simulation methodology</h5>
                     <p>This simulator models a Magic: The Gathering scenario where your deck
                         contains a mix of spells and mana cards. For each simulation:</p>
                     <ul>
@@ -96,7 +102,7 @@
                         <li>We also track which single-color pip helps reduce dead spells most.</li>
                     </ul>
 
-                    <h5>Uncolored Mana &amp; Numeric Prefixes</h5>
+                    <h5>Uncolored mana &amp; numeric prefixes</h5>
                     <p>Use numeric prefixes and <code>*</code> for generic mana. Examples:</p>
                     <ul>
                         <li><code>U</code> = requires 1 blue pip</li>
@@ -107,9 +113,9 @@
 
                     <h5>Charts</h5>
                     <ul>
-                        <li><strong>Distribution of Dead Spells:</strong> Bar chart of how often
+                        <li><strong>Distribution of dead spells:</strong> Bar chart of how often
                             each number of dead spells occurs (except 0).</li>
-                        <li><strong>Best Color to Replace a Land:</strong> How often switching
+                        <li><strong>Best color to replace a land:</strong> How often switching
                             a land to each color is optimal.</li>
                     </ul>
                 </div>
@@ -121,23 +127,23 @@
             </div>
         </div>
     </div>
-    <!-- End Methodology Modal -->
+    <!-- end methodology modal -->
 
-    <!-- Main container -->
+    <!-- main container -->
     <div class="container-fluid py-3">
-        <!-- Two-column row: left = settings, right = results -->
+        <!-- two-column row: left = settings, right = results -->
         <div class="row">
-            <!-- Left (Narrow) Column: Simulation Settings -->
+            <!-- left (narrow) column: simulation settings -->
             <div class="col-md-3 mb-4">
                 <div class="card">
                     <div class="card-header bg-primary text-white">
-                        Simulation Settings
+                        Simulation settings
                     </div>
                     <div class="card-body">
                         <form id="simulation-form">
                             <div class="mb-3">
                                 <label for="deck_size" class="form-label">
-                                    Deck Size
+                                    Deck size
                                     <span class="tooltip-help" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Total cards in your deck (including spells, mana, filler).">
                                         ?
@@ -149,7 +155,7 @@
 
                             <div class="mb-3">
                                 <label for="hand_size" class="form-label">
-                                    Initial Hand Size
+                                    Initial hand size
                                     <span class="tooltip-help" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Number of cards in your opening hand.">
                                         ?
@@ -161,7 +167,7 @@
 
                             <div class="mb-3">
                                 <label for="draws" class="form-label">
-                                    Number of Draw Steps
+                                    Number of draw steps
                                     <span class="tooltip-help" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Number of additional turns to simulate; you draw 1 card each turn.">
                                         ?
@@ -172,7 +178,7 @@
 
                             <div class="mb-3">
                                 <label for="simulations" class="form-label">
-                                    Number of Simulations
+                                    Number of simulations
                                     <span class="tooltip-help" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Number of simulated trials (higher = more accurate).">
                                         ?
@@ -184,7 +190,7 @@
 
                             <div class="mb-3">
                                 <label for="seed" class="form-label">
-                                    Random Seed
+                                    Random seed
                                     <span class="tooltip-help" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Set this for reproducible results.">
                                         ?
@@ -195,7 +201,7 @@
 
                             <div class="mb-3">
                                 <label for="on_play_or_draw" class="form-label">
-                                    On the Play or Draw
+                                    On the play or draw
                                     <span class="tooltip-help" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Affects how many lands you've been able to play by each turn.">
                                         ?
@@ -257,11 +263,11 @@
                 </div>
             </div>
 
-            <!-- Right (Wider) Column: Results -->
+            <!-- right (wider) column: results -->
             <div class="col-md-9">
                 <div class="card">
                     <div class="card-header bg-secondary text-white">
-                        Simulation Results
+                        Simulation results
                     </div>
                     <!-- We'll replace this entire card-body dynamically -->
                     <div class="card-body" id="results-container">
@@ -272,9 +278,9 @@
         </div>
     </div>
 
-    <!-- Optional Footer -->
-    <footer class="fixed-bottom bg-light text-center p-2">
-        <small class="text-muted">© 2025 Magic Tools, Inc.</small>
+    <!-- footer with dark blue background -->
+    <footer class="fixed-bottom bg-custom text-white text-center p-2">
+        <small class="text-white-50">© 2025 Mathamagic, Inc.</small>
     </footer>
 
     <!-- Bootstrap JS (Popper + Bootstrap) -->
@@ -283,12 +289,11 @@
 
     <script>
         function runSimulation() {
-            // Grab our forms and containers
+            // Grab our form and the results container
             const form = document.getElementById('simulation-form');
             const resultsContainer = document.getElementById('results-container');
 
-            // 1) As soon as the user clicks "Run Simulation", clear everything
-            //    and show ONLY the spinner message in #results-container.
+            // Show ONLY the spinner message in #results-container while we wait
             resultsContainer.innerHTML = `
         <div class="d-flex align-items-center">
           <div class="spinner-border text-primary me-2" role="status">
@@ -314,24 +319,21 @@
                 .then(response => response.json())
                 .then(json => {
                     if (json.error) {
-                        // Show error in the results container (no other content)
+                        // Show error (only) in the results container
                         resultsContainer.innerHTML = `
             <div class="alert alert-danger" role="alert">
               <strong>Error:</strong> ${json.error}
             </div>
           `;
                     } else {
-                        // We have valid results. Rebuild the entire #results-container with:
-                        //  - Statistic cards in a light-grey card
-                        //  - Two separate chart cards, also in a light-grey background
-
+                        // We have valid results. Rebuild the #results-container
                         const stats = json.stats;
                         const pctZeroDead = (stats.pct_turns_zero_dead * 100).toFixed(2);
                         const expDead = stats.expected_dead_per_turn.toFixed(2);
                         const mostColor = stats.most_desired_color;
                         const leastColor = stats.least_desired_color;
 
-                        // Build the HTML for our "statistic cards"
+                        // Build stat cards
                         const statCardsHTML = `
             <div class="row row-cols-2 row-cols-md-4 g-2">
               <div class="col">
@@ -385,12 +387,8 @@
             </div>
           `;
 
-                        // 2) Now populate the results container with:
-                        //    - a card for the stats
-                        //    - a card for the Distribution chart
-                        //    - a card for the Best Color chart
                         resultsContainer.innerHTML = `
-            <!-- Stats card -->
+            <!-- stats card -->
             <div class="card mb-3 bg-light">
               <div class="card-header fw-bold">
                 Statistics
@@ -400,24 +398,24 @@
               </div>
             </div>
 
-            <!-- First chart card -->
+            <!-- first chart card -->
             <div class="card mb-3 bg-light">
               <div class="card-header fw-bold">
-                Distribution of Dead Spells
+                Distribution of dead spells
               </div>
               <div class="card-body" id="distribution-chart"></div>
             </div>
 
-            <!-- Second chart card -->
+            <!-- second chart card -->
             <div class="card mb-3 bg-light">
               <div class="card-header fw-bold">
-                Best Color to Replace a Land
+                Best color to replace a land
               </div>
               <div class="card-body" id="best-color-chart"></div>
             </div>
           `;
 
-                        // 3) Embed the two charts using Vega-Embed
+                        // Render the two charts
                         vegaEmbed('#distribution-chart', json.dist_chart_spec);
                         vegaEmbed('#best-color-chart', json.best_color_chart_spec);
                     }
