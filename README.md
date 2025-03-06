@@ -43,6 +43,8 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 
 ### TODO
 
+* Rotate the turn number labels
+
 * Sentence case everywhere
 * Enhance the Methodology section
 * Add a FAQ section
@@ -51,10 +53,24 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 * Change from the negative "dead cards" to the positive "castable spells"
 * Track for each spell (by key) (a) how often it is in hand, (b) how often it is castable, (c) % of time castable, (d) total mana cost, and (e) % castable over mana cost. Sort by (e) descending
 
+* Make the visualizations searchable
+
 * Add an example in the About for how to enter the JSON
 
 * Limit the number of simulations that can be run to 1,000
 * Limit the number of draw steps to 20
+
+* Change the spells / mana input to a single "deck" iput with something like:
+
+```
+"4*U"  # a 4 generic 1 blue mana spell
+">BU"  # a land that produces black or blue mana
+"2*>*" # a 2 generic spell that can then be tapped immediately for any mana color (e.g., Tortoise)
+"3*|WUBRG"  # a 3 generic spell that can tutor for any basic land
+"*U>*/" # a one generic one blue spell that can tap for generic mana but enters tapped
+">UB/" # a blue / white mana that enters tapped
+```
+maybe have a conversation with ChatGPT about how to represent all these things
 
 * Keep track of a version number displayed somewhere on the main page
 (maybe in the main page)
