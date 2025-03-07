@@ -7,9 +7,9 @@ import json
 import numpy as np
 import pandas as pd
 
-# Import the simulation code (no altair stuff here)
+# Import the simulation code (unified approach now)
 from lib.mana import run_simulation, CANONICAL_COLORS
-# Import the new chart classes
+# Import the updated chart classes
 from lib.viz import DistributionChart, BestColorChart
 
 app = Flask(__name__)
@@ -31,17 +31,17 @@ def simulate():
         draws = int(data['draws'])
         simulations = int(data['simulations'])
         seed = int(data['seed'])
-        spells_dict = json.loads(data['spells_json'])
-        mana_dict = json.loads(data['mana_json'])
 
-        # Parse the "on play or draw" field
-        on_play_or_draw = data.get('on_play_or_draw', 'play')
-        on_play = (on_play_or_draw.lower() == 'play')
+        # 'on_play_or_draw' is optional; default 'play'
+        on_play_or_draw = data.get('on_play_or_draw', 'play').lower()
+        on_play = (on_play_or_draw == 'play')
 
-        # Run the simulation to get two DataFrames
+        # The user now provides one single deck JSON
+        deck_dict = json.loads(data['deck_json'])
+
+        # Run the simulation
         df_summary, df_distribution = run_simulation(
-            spells_dict,
-            mana_dict,
+            deck_dict=deck_dict,
             total_deck_size=deck_size,
             draws=draws,
             simulations=simulations,
@@ -50,7 +50,7 @@ def simulate():
             on_play=on_play
         )
 
-        # Create separate chart specs
+        # Create chart specs
         dist_chart_spec = DistributionChart(df_distribution).render_spec()
         best_color_chart_spec = BestColorChart(df_summary).render_spec()
 
@@ -72,10 +72,19 @@ def simulate():
             color_fractions[c] = frac_sum / (draws + 1) if draws > 0 else 0
         most_desired_color = max(color_fractions, key=color_fractions.get) if color_fractions else "N/A"
 
-        # Determine "least desired" color (only among colors actually used in spells)
+        # Determine "least desired" color (among colors used in deck, if any)
         used_spell_colors = set()
-        for cost_str in spells_dict.keys():
-            for ch in cost_str:
+        for card_str in deck_dict.keys():
+            # We'll parse out the color letters from the cost part only
+            # Because something like ">BW" is a land, not a spell requiring B/W.
+            # We'll do a naive parse:
+            if card_str.startswith('>'):
+                # It's a land
+                continue
+            # If it has a '>' inside, strip off the produce part
+            cost_part = card_str.split('>', 1)[0]
+            # Gather W/U/B/R/G from cost_part
+            for ch in cost_part:
                 if ch in CANONICAL_COLORS:
                     used_spell_colors.add(ch)
 

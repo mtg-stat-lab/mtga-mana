@@ -43,6 +43,27 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 
 ### TODO
 
+Make some assumptions clear in documentation:
+
+* This is the most optimistic scenario for your ability to spend your mana
+* It only cares about spending mana, not about value, life or cards
+* It isn't actually simulating the gameplay (which is very complex), rather, it
+is just answering the question "on this turn, given the cards drawn so far, is there
+any way I could have cast this spell given lands and mana producing cards I could have
+played on prior turns?)
+* We aren't accounting for cards that can tutor a lands from your deck (like Pathfinder) or from your graveyard (like Pothole Mole), so you have to either consider them as producing mana or not. For example, for the Mole, either `2*>WUBRG` for producing mana or `2*G` for not.
+* We aren't accounting for any card draw, exhaust or cycling abilities
+
+Make some clearer examples of how the encodings should work:
+
+* Plains: >G
+* Thornwood Falls: >UG
+* Night Market >WUBRG
+* Scurryfoot: G
+* Run Over: *G
+* Ketradon: 4*2G
+* Veloheart bike: 2*G>WUBRG
+
 * Sentence case everywhere
 * Enhance the Methodology section
 * Add a FAQ section
