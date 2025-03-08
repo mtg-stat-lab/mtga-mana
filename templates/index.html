@@ -15,6 +15,43 @@
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
 
     <style>
+        :root {
+            --app-width: 1700px;
+            /* Total width of the app */
+            --settings-width: 300px;
+            /* Fixed width for simulation settings */
+            --left-chart-percentage: 50%;
+            /* Percentage of available width for left charts */
+            --right-chart-percentage: 50%;
+            /* Percentage of available width for right charts */
+        }
+
+        /* Main container */
+        .app-container {
+            max-width: var(--app-width);
+            margin: auto;
+        }
+
+        /* Left panel: simulation settings box */
+        .simulation-settings {
+            width: var(--settings-width);
+        }
+
+        /* Right panel: simulation results (takes remaining width) */
+        .simulation-results {
+            flex-grow: 1;
+            margin-left: 1rem;
+        }
+
+        /* Chart panels in dynamic results: widths set via inline style using CSS variables */
+        .left-chart-panel {
+            /* width set inline: var(--left-chart-percentage) */
+        }
+
+        .right-chart-panel {
+            /* width set inline: var(--right-chart-percentage) */
+        }
+
         .bg-custom {
             background-color: #003366 !important;
         }
@@ -39,8 +76,10 @@
             white-space: pre;
         }
 
+        /* Ensure charts are responsive */
         #distribution-chart,
-        #best-color-chart {
+        #best-color-chart,
+        #spell-delay-chart {
             overflow-x: auto;
             max-width: 100%;
         }
@@ -75,7 +114,7 @@
         </div>
     </nav>
 
-    <!-- modal: methodology -->
+    <!-- Modal: Methodology -->
     <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -95,11 +134,12 @@
             </div>
         </div>
     </div>
-    <!-- end modal -->
+    <!-- End modal -->
 
-    <div class="container-fluid py-3">
-        <div class="row">
-            <div class="col-md-3 mb-4">
+    <div class="container-fluid py-3 app-container">
+        <div class="d-flex">
+            <!-- Simulation settings box -->
+            <div class="simulation-settings">
                 <div class="card">
                     <div class="card-header bg-primary text-white">
                         Simulation settings
@@ -107,57 +147,37 @@
                     <div class="card-body">
                         <form id="simulation-form">
                             <div class="mb-3">
-                                <label for="deck_size" class="form-label">
-                                    Deck size
-                                </label>
+                                <label for="deck_size" class="form-label">Deck size</label>
                                 <input type="number" class="form-control" id="deck_size" name="deck_size" value="40"
                                     required>
                             </div>
-
                             <div class="mb-3">
-                                <label for="hand_size" class="form-label">
-                                    Initial hand size
-                                </label>
+                                <label for="hand_size" class="form-label">Initial hand size</label>
                                 <input type="number" class="form-control" id="hand_size" name="hand_size" value="7"
                                     required>
                             </div>
-
                             <div class="mb-3">
-                                <label for="draws" class="form-label">
-                                    Number of draw steps
-                                </label>
+                                <label for="draws" class="form-label">Number of draw steps</label>
                                 <input type="number" class="form-control" id="draws" name="draws" value="10" required>
                             </div>
-
                             <div class="mb-3">
-                                <label for="simulations" class="form-label">
-                                    Number of simulations
-                                </label>
+                                <label for="simulations" class="form-label">Number of simulations</label>
                                 <input type="number" class="form-control" id="simulations" name="simulations"
                                     value="1000" required>
                             </div>
-
                             <div class="mb-3">
-                                <label for="seed" class="form-label">
-                                    Random seed
-                                </label>
+                                <label for="seed" class="form-label">Random seed</label>
                                 <input type="number" class="form-control" id="seed" name="seed" value="42" required>
                             </div>
-
                             <div class="mb-3">
-                                <label for="on_play_or_draw" class="form-label">
-                                    On the play or draw
-                                </label>
+                                <label for="on_play_or_draw" class="form-label">On the play or draw</label>
                                 <select id="on_play_or_draw" name="on_play_or_draw" class="form-select">
                                     <option value="play" selected>Play</option>
                                     <option value="draw">Draw</option>
                                 </select>
                             </div>
-
                             <div class="mb-3">
-                                <label for="deck_list" class="form-label">
-                                    Deck List
-                                </label>
+                                <label for="deck_list" class="form-label">Deck List</label>
                                 <textarea id="deck_list" name="deck_list" class="form-control" rows="12">Deck
 1 Engine Rat
 1 Gastal Raider
@@ -202,14 +222,14 @@ Sideboard
                     </div>
                 </div>
             </div>
-            <!-- results column -->
-            <div class="col-md-9">
+            <!-- Simulation results -->
+            <div class="simulation-results">
                 <div class="card">
                     <div class="card-header bg-secondary text-white">
                         Simulation results
                     </div>
                     <div class="card-body" id="results-container">
-                        <!-- dynamically filled -->
+                        <!-- Dynamically filled simulation results will appear here -->
                     </div>
                 </div>
             </div>
@@ -257,22 +277,18 @@ Sideboard
               </div>
             `;
                     } else {
-                        // success
                         const stats = json.stats;
                         const pctZeroDead = (stats.pct_turns_zero_dead * 100).toFixed(2);
                         const expDead = stats.expected_dead_per_turn.toFixed(2);
                         const mostColor = stats.most_desired_color;
                         const leastColor = stats.least_desired_color;
 
-                        // Show stats
                         const statCardsHTML = `
               <div class="row row-cols-2 row-cols-md-4 g-2">
                 <div class="col">
                   <div class="card text-center border-0 bg-light">
                     <div class="card-body p-2">
-                      <h6 class="card-title mb-1" style="font-size:0.85rem;">
-                        % of turns with 0 dead spells
-                      </h6>
+                      <h6 class="card-title mb-1" style="font-size:0.85rem;">% of turns with 0 dead spells</h6>
                       <p class="card-text fw-bold">${pctZeroDead}%</p>
                     </div>
                   </div>
@@ -280,9 +296,7 @@ Sideboard
                 <div class="col">
                   <div class="card text-center border-0 bg-light">
                     <div class="card-body p-2">
-                      <h6 class="card-title mb-1" style="font-size:0.85rem;">
-                        Expected dead spells per turn
-                      </h6>
+                      <h6 class="card-title mb-1" style="font-size:0.85rem;">Expected dead spells per turn</h6>
                       <p class="card-text fw-bold">${expDead}</p>
                     </div>
                   </div>
@@ -290,9 +304,7 @@ Sideboard
                 <div class="col">
                   <div class="card text-center border-0 bg-light">
                     <div class="card-body p-2">
-                      <h6 class="card-title mb-1" style="font-size:0.85rem;">
-                        Most desired pip color
-                      </h6>
+                      <h6 class="card-title mb-1" style="font-size:0.85rem;">Most desired pip color</h6>
                       <p class="card-text fw-bold">${mostColor}</p>
                     </div>
                   </div>
@@ -300,9 +312,7 @@ Sideboard
                 <div class="col">
                   <div class="card text-center border-0 bg-light">
                     <div class="card-body p-2">
-                      <h6 class="card-title mb-1" style="font-size:0.85rem;">
-                        Least desired pip color
-                      </h6>
+                      <h6 class="card-title mb-1" style="font-size:0.85rem;">Least desired pip color</h6>
                       <p class="card-text fw-bold">${leastColor}</p>
                     </div>
                   </div>
@@ -311,36 +321,36 @@ Sideboard
             `;
 
                         resultsContainer.innerHTML = `
-              <!-- stats card -->
+              <!-- Statistics card -->
               <div class="card mb-3 bg-light">
-                <div class="card-header fw-bold">
-                  Statistics
-                </div>
+                <div class="card-header fw-bold">Statistics</div>
                 <div class="card-body">
                   ${statCardsHTML}
                 </div>
               </div>
-
-              <!-- distribution chart -->
-              <div class="card mb-3 bg-light">
-                <div class="card-header fw-bold">
-                  Distribution of dead spells
+              <!-- Chart panels row -->
+              <div class="row">
+                <div class="left-chart-panel" style="width: var(--left-chart-percentage);">
+                  <div class="card mb-3 bg-light">
+                    <div class="card-header fw-bold">Distribution of dead spells</div>
+                    <div class="card-body" id="distribution-chart"></div>
+                  </div>
+                  <div class="card mb-3 bg-light">
+                    <div class="card-header fw-bold">Best color to replace a land</div>
+                    <div class="card-body" id="best-color-chart"></div>
+                  </div>
                 </div>
-                <div class="card-body" id="distribution-chart"></div>
-              </div>
-
-              <!-- best color chart -->
-              <div class="card mb-3 bg-light">
-                <div class="card-header fw-bold">
-                  Best color to replace a land
+                <div class="right-chart-panel" style="width: var(--right-chart-percentage);">
+                  <div class="card mb-3 bg-light">
+                    <div class="card-header fw-bold">Turns each spell spent dead in hand after drawing</div>
+                    <div class="card-body" id="spell-delay-chart"></div>
+                  </div>
                 </div>
-                <div class="card-body" id="best-color-chart"></div>
               </div>
             `;
-
-                        // Render charts
                         vegaEmbed('#distribution-chart', json.dist_chart_spec);
                         vegaEmbed('#best-color-chart', json.best_color_chart_spec);
+                        vegaEmbed('#spell-delay-chart', json.spell_delay_chart_spec);
                     }
                 })
                 .catch(error => {
@@ -359,7 +369,7 @@ Sideboard
 
         document.getElementById('runSimulationHeader').addEventListener('click', runSimulation);
 
-        // bootstrap tooltips
+        // Bootstrap tooltips
         document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
             new bootstrap.Tooltip(el);
         });
