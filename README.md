@@ -36,14 +36,12 @@ python apps/mana.py
 
 Go to [this URL](http://127.0.0.1:5001/) to see the app!
 
-### History
+### Card dataHistory
 
-Started this shell based on this [ChatGPT conversation](https://chatgpt.com/share/67c5a082-dca4-8003-8937-992d41ee3bb1).
-
+This app uses manually entered card data for spell casting / mana production costs that
+is maintained in a google sheet [here](https://docs.google.com/spreadsheets/d/1NzkW7K1MEjIbj91Wgb5BYoGfQQgyAi6Kc_ONQymDrb8/edit?usp=sharing).
 
 ### TODO
-
-* Pull in the DFT cards and encode them in a CSV and use that to parse the deck list
 
 * Add a visualization that shows when each card in the deck is typically able to be cast
 
@@ -52,6 +50,10 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 * Are lands like the Raceway that produce only generic mana properly accounted for with a `>*` string?
 
 * Run the simulation swapping all basic lands and show those results?
+
+* Check that the deck size is correct
+
+* Consolidate some of the configuration into horizontal cards
 
 * Add a FAQ section
 
