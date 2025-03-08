@@ -97,30 +97,18 @@
 <h3>Simplification of Real MTG Games</h3>
 <p>
     This simulation focuses solely on mana availability and the ability to cast spells. It does not capture many of the
-    complexities of real Magic: The Gathering games, such as:
+    complexities of real Magic. For example:
 </p>
 <ul>
-    <li>Card interactions beyond mana production and cost.</li>
-    <li>Combat, life totals, and strategic decision-making.</li>
-    <li>Complex timing rules or priority in gameplay.</li>
+    <li>It does not consider card abilities such as card draw, cycling, tutoring, exhaust abilities, etc.</li>
+    <li>We aren't simulating anything related to gameplay (this is just about greedy use of mana).</li>
+    <li>A card is considered castable if it would have been possible to cast it given the mana sources you have, even if
+        you have other competing uses for that mana.</li>
+    <li>It doesn't consider the value of holding onto a card for a future turn.</li>
+    <li>It is able to make perfect decisions about what lands to have played in prior turns in order to maximize the
+        ability to cast any given spell on this turn.</li>
+    <li>We aren't keeping track of any affinity cost reductions.</li>
 </ul>
-
-<h3>Other Limitations</h3>
-<ul>
-    <li>
-        <strong>Static Deck Composition:</strong> The simulation uses a fixed deck without considering sideboarding or
-        in-game modifications.
-    </li>
-    <li>
-        <strong>Simplified Cost Parsing:</strong> The card cost parsing is “naive” and may not handle every possible
-        cost format found in real cards.
-    </li>
-    <li>
-        <strong>Fixed Turn and Simulation Counts:</strong> The results depend on the number of turns and simulations
-        run; longer games or different simulation parameters might yield different insights.
-    </li>
-    <li>
-        <strong>Exclusion of Other Game Mechanics:</strong> Non-mana related game factors are not modeled, meaning the
-        simulation only provides insights into the mana curve and potential “dead” spells.
-    </li>
-</ul>
+<p>
+    So, in general, think about this is the most <i>optimistic</i> scenario for spending your mana.</li>
+</p>

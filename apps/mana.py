@@ -7,9 +7,7 @@ import json
 import numpy as np
 import pandas as pd
 
-# Import the simulation code (unified approach now)
 from lib.mana import run_simulation, CANONICAL_COLORS
-# Import the updated chart classes
 from lib.viz import DistributionChart, BestColorChart
 
 app = Flask(__name__)

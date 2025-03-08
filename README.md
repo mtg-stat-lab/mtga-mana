@@ -43,33 +43,14 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 
 ### TODO
 
-Make some assumptions clear in documentation:
+* Pull in the DFT cards and encode them in a CSV and use that to parse the deck list
 
-* This is the most optimistic scenario for your ability to spend your mana
-* It only cares about spending mana, not about value, life or cards
-* It isn't actually simulating the gameplay (which is very complex), rather, it
-is just answering the question "on this turn, given the cards drawn so far, is there
-any way I could have cast this spell given lands and mana producing cards I could have
-played on prior turns?)
-* We aren't accounting for cards that can tutor a lands from your deck (like Pathfinder) or from your graveyard (like Pothole Mole), so you have to either consider them as producing mana or not. For example, for the Mole, either `2*>WUBRG` for producing mana or `2*G` for not.
-* We aren't accounting for any card draw, exhaust or cycling abilities
+* Add a visualization that shows when each card in the deck is typically able to be cast
 
-Make some clearer examples of how the encodings should work:
-
-* Plains: >G
-* Thornwood Falls: >UG
-* Night Market >WUBRG
-* Scurryfoot: G
-* Run Over: *G
-* Ketradon: 4*2G
-* Veloheart bike: 2*G>WUBRG
-
-* Sentence case everywhere
-* Enhance the Methodology section
 * Add a FAQ section
-* Choose a name
 
 * Change from the negative "dead cards" to the positive "castable spells"
+
 * Track for each spell (by key) (a) how often it is in hand, (b) how often it is castable, (c) % of time castable, (d) total mana cost, and (e) % castable over mana cost. Sort by (e) descending
 
 * Make the visualizations searchable
@@ -78,18 +59,6 @@ Make some clearer examples of how the encodings should work:
 
 * Limit the number of simulations that can be run to 1,000
 * Limit the number of draw steps to 20
-
-* Change the spells / mana input to a single "deck" iput with something like:
-
-```
-"4*U"  # a 4 generic 1 blue mana spell
-">BU"  # a land that produces black or blue mana
-"2*>*" # a 2 generic spell that can then be tapped immediately for any mana color (e.g., Tortoise)
-"3*|WUBRG"  # a 3 generic spell that can tutor for any basic land
-"*U>*/" # a one generic one blue spell that can tap for generic mana but enters tapped
-">UB/" # a blue / white mana that enters tapped
-```
-maybe have a conversation with ChatGPT about how to represent all these things
 
 * Keep track of a version number displayed somewhere on the main page
 (maybe in the main page)
