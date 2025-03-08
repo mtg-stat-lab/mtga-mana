@@ -43,6 +43,8 @@ is maintained in a google sheet [here](https://docs.google.com/spreadsheets/d/1N
 
 ### TODO
 
+* Add traceback information in the errors as well as the error message
+
 * Add a visualization that shows when each card in the deck is typically able to be cast
 
 * Add status information about run time
