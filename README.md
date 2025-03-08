@@ -53,6 +53,10 @@ From the latest change:
 
 Other:
 
+* Can you account for tapped lands appearing on the turn they are drawn not being useful?
+
+* Have o1 try to refactor this some more
+
 * Update methodology to reflect latest changes
 
 * Have a few examples with links the user can click on to automatically populate decks for testing (also include 17lands links for each?)
