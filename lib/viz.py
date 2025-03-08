@@ -66,7 +66,7 @@ class DistributionChart(BaseChart):
                 order=alt.Order("dead_spells:Q", sort="descending")
             )
             .properties(
-                width=600,
+                width=500,
                 height=300
             )
             .configure(background='transparent')
@@ -123,7 +123,7 @@ class BestColorChart(BaseChart):
                 )
             )
             .properties(
-                width=600,
+                width=500,
                 height=300
             )
             .configure(background='transparent')
@@ -153,22 +153,26 @@ class SpellDelayChart(BaseChart):
            The y-axis has no labels.
     Spells are ordered by expected (weighted mean) dead turns descending.
     For generic cost, a single light grey circle shows the total generic cost (with a black number).
-    For colored costs, one circle is shown per pip required, using the corresponding color and a "1" on top.
+    For colored costs, one circle is shown per pip required, using the corresponding color.
     """
     def __init__(self, df_delay: pd.DataFrame, df_cost: pd.DataFrame):
         self.df_delay = df_delay
         self.df_cost = df_cost
 
     def render_spec(self) -> dict:
+        # Exclude lands (assumed to have a card name starting with '>')
+        df_delay = self.df_delay[~self.df_delay['card_name'].str.startswith('>')]
+        df_cost = self.df_cost[~self.df_cost['card_name'].str.startswith('>')]
+
         # Determine ordering by expected dead turns (weighted mean) descending.
-        expected = self.df_delay.groupby("card_name")["delay"].mean().reset_index(name="expected_dead")
+        expected = df_delay.groupby("card_name")["delay"].mean().reset_index(name="expected_dead")
         ordering = expected.sort_values("expected_dead", ascending=False)["card_name"].tolist()
 
         # Bubble chart for delay distribution.
-        aggregated = self.df_delay.groupby(["card_name", "delay"]).size().reset_index(name="count")
+        aggregated = df_delay.groupby(["card_name", "delay"]).size().reset_index(name="count")
         bubble = alt.Chart(aggregated).mark_circle().encode(
-            x=alt.X("delay:Q", title="Turns Dead in Hand"),
-            y=alt.Y("card_name:N", title=None, sort=ordering, axis=None),
+            x=alt.X("delay:Q", title="Turns Dead in Hand", axis=alt.Axis(grid=False)),
+            y=alt.Y("card_name:N", title=None, sort=ordering, axis=alt.Axis(grid=False, ticks=False, domain=False)),
             size=alt.Size("count:Q", title="Frequency", scale=alt.Scale(range=[10, 1000])),
             tooltip=["card_name:N", "delay:Q", "count:Q"]
         ).properties(
@@ -178,7 +182,7 @@ class SpellDelayChart(BaseChart):
 
         # Transform cost DataFrame into long format for cost chart.
         cost_long_rows = []
-        for _, row in self.df_cost.iterrows():
+        for _, row in df_cost.iterrows():
             card_name = row["card_name"]
             pos = 0
             # If generic cost > 0, add one circle.
@@ -215,32 +219,39 @@ class SpellDelayChart(BaseChart):
 
         cost_chart = alt.Chart(df_cost_long).mark_circle(size=100).encode(
             x=alt.X("position:Q", axis=None),
-            y=alt.Y("card_name:N", title="Spell Name", sort=ordering),
-            color=alt.Color("cost_type:N", scale=alt.Scale(domain=["generic"] + CANONICAL_COLORS,
-                                                             range=[cost_color_mapping["generic"]] + 
-                                                                   [cost_color_mapping[c] for c in CANONICAL_COLORS])),
+            y=alt.Y("card_name:N", title=None, sort=ordering, axis=alt.Axis(grid=False)),
+            color=alt.Color("cost_type:N", scale=alt.Scale(
+                domain=["generic"] + CANONICAL_COLORS,
+                range=[cost_color_mapping["generic"]] + [cost_color_mapping[c] for c in CANONICAL_COLORS]
+            )),
             tooltip=["card_name:N", "cost_type:N", "value:Q"]
         ).properties(
-            width=150,
-            height=400
-        )
-        cost_text = alt.Chart(df_cost_long).mark_text(color="black").encode(
-            x=alt.X("position:Q", axis=None),
-            y=alt.Y("card_name:N", sort=ordering),
-            text=alt.Text("value:Q")
-        )
-        cost_combined = (cost_chart + cost_text).properties(
-            width=150,
+            width=50,
             height=400
         )
 
-        # Horizontally concatenate the cost chart (with y-axis labels) and bubble chart (without y-axis labels).
+        # Only show the numeric text for generic cost circles.
+        cost_text = alt.Chart(df_cost_long).mark_text(color="black").encode(
+            x=alt.X("position:Q", axis=None),
+            y=alt.Y("card_name:N", sort=ordering),
+            text=alt.condition(
+                alt.datum.cost_type == "generic",
+                alt.Text("value:Q"),
+                alt.value("")
+            )
+        )
+
+        cost_combined = (cost_chart + cost_text).properties(
+            width=50,
+            height=400
+        )
+
+        # Horizontally concatenate the cost chart (with y-axis labels) and bubble chart.
         concat_chart = alt.hconcat(
             cost_combined,
             bubble,
             spacing=10
-        ).resolve_scale(y='shared').properties(
-            title="Spell Delay and Mana Cost"
-        )
+        ).resolve_scale(y='shared')
 
         return concat_chart.to_dict()
+
