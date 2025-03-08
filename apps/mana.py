@@ -44,14 +44,17 @@ def simulate():
         # Build a cost DataFrame for the cards including generic cost.
         cost_rows = []
         for card_name, (mana, count) in deck_dict.items():
-            # Skip any mana-producing card (lands or spells) if the mana string contains '>'
+            # If the mana string contains '>', extract the cost portion before '>'
             if '>' in mana:
-                continue
-            uncolored, color_costs = parse_cost_string(mana)
+                cost_str = mana.split('>')[0]
+            else:
+                cost_str = mana
+            uncolored, color_costs = parse_cost_string(cost_str)
             row = {"card_name": card_name, "generic": uncolored}
             for c in CANONICAL_COLORS:
                 row[c] = color_costs.get(c, 0)
             cost_rows.append(row)
+
         df_cost = pd.DataFrame(cost_rows)
 
         # Run the simulation for dead spells and best color.
