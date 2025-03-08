@@ -43,9 +43,16 @@ is maintained in a google sheet [here](https://docs.google.com/spreadsheets/d/1N
 
 ### TODO
 
-* Add traceback information in the errors as well as the error message
+Some fixes for the latest change:
 
-* Add a visualization that shows when each card in the deck is typically able to be cast
+* Make the frequency of turns dead in hand normalized for how many of the card you are playing
+* Veloheart bike's cost isn't appearing correctly
+* Check what a starting column deck looks like
+* The turns dead in hand should go to 10 no?
+* The new chart doesn't seem to quite square with the "most desired pip" chart?
+
+
+* Add traceback information in the errors as well as the error message
 
 * Add status information about run time
 
