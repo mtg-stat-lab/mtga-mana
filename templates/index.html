@@ -85,16 +85,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <h5>Single-Deck Approach</h5>
-                    <p>All spells, lands, and mana-producing spells appear in one deck JSON. For example:</p>
-                    <pre>{
-  "&gt;B": 8,          // 8 basic lands that produce B
-  "BW": 2,            // 2 spells costing B+W
-  "3*&gt;WUBRG": 1    // 1 spell costing 3 colorless that can then tap for W/U/B/R/G
-}</pre>
-                    <p>The simulator draws cards turn by turn, tracks how many spells are "dead,"
-                        and once a mana-producing spell is deemed castable at turn X,
-                        it counts as a permanent mana source for all subsequent turns.</p>
+                    {% include "methodology.html" %}
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
