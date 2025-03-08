@@ -44,6 +44,9 @@ def simulate():
         # Build a cost DataFrame for the cards including generic cost.
         cost_rows = []
         for card_name, (mana, count) in deck_dict.items():
+            # Skip any mana-producing card (lands or spells) if the mana string contains '>'
+            if '>' in mana:
+                continue
             uncolored, color_costs = parse_cost_string(mana)
             row = {"card_name": card_name, "generic": uncolored}
             for c in CANONICAL_COLORS:

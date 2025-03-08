@@ -318,6 +318,7 @@ def run_simulation_with_delay(
     """
     Simulate a persistent hand and record, for each non-land spell,
     how many turns it sat in hand (i.e. delay between draw and first being castable).
+    Lands are skipped because they are always castable on turn 1.
     """
     if seed is not None:
         random.seed(seed)
@@ -331,6 +332,7 @@ def run_simulation_with_delay(
         for _ in range(initial_hand_size):
             if deck.cards:
                 card = deck.cards.pop(0)
+                # Only assign draw_turn for non-land cards
                 if card is not None and not card.is_land:
                     card.draw_turn = 1
                 hand.append(card)
@@ -341,6 +343,7 @@ def run_simulation_with_delay(
         for turn in range(1, draws + 1):
             if turn > 1 and deck.cards:
                 card = deck.cards.pop(0)
+                # Only assign draw_turn for non-land cards
                 if card is not None and not card.is_land:
                     card.draw_turn = turn
                 hand.append(card)
@@ -348,10 +351,10 @@ def run_simulation_with_delay(
             available_sources = persisted_mana_producers + [c for c in hand if c is not None and c.is_land]
             lands_playable = turn
             
-            # Check each non-land in hand for castability
+            # Process only non-land cards for delay tracking
             for card in hand.copy():
                 if card is None or card.is_land:
-                    continue
+                    continue  # Skip lands entirely
                 if _can_cast_with_sources(card, available_sources, lands_playable):
                     delay = turn - getattr(card, 'draw_turn', turn)
                     delay_records.append({
