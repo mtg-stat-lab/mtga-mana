@@ -261,7 +261,7 @@ class SpellDelayChart(BaseChart):
         
         cost_text = (
             alt.Chart(df_cost_long)
-            .mark_text(color="black", opacity=.8, size=8, font="monospace", dy=1)
+            .mark_text(color="black", opacity=.8, size=8, font="monospace", dy=0.5)
             .encode(
                 x=alt.X("position:Q", axis=None),
                 y=alt.Y("card_name:N", sort=ordering),
