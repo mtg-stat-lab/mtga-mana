@@ -49,6 +49,8 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 
 * Add status information about run time
 
+* Are lands like the Raceway that produce only generic mana properly accounted for with a `>*` string?
+
 * Run the simulation swapping all basic lands and show those results?
 
 * Add a FAQ section

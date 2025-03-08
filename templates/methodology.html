@@ -1,45 +1,31 @@
-<h3>How to Use the App</h3>
+<h3>Getting started</h3>
 <p>
     Fill in the simulation settings on the left (deck size, initial hand size, number of draw steps, number of
-    simulations, and random seed). Then, enter your deck’s configuration in JSON format in the provided text area.
+    simulations, and random seed). Then, paste your deck list in the provided text area. The deck list should include
+    a "Deck" section (which will be simulated) and a "Sideboard" section (which will be ignored).
     Finally, click “Run simulation” to start the simulation and view the results and charts on the right.
 </p>
 
-<h3>How to Encode Your Cards in JSON</h3>
-<ul>
-    <li>
-        <strong>Card Strings:</strong> Each key in the JSON represents a card, and its value is the quantity in the
-        deck.
-    </li>
-    <li>
-        <strong>Lands:</strong> Lands are identified by a leading <code>&gt;</code>. For example, <code>&gt;R</code>
-        represents a red-producing land.
-    </li>
-    <li>
-        <strong>Mana-Producing Spells:</strong> If a spell produces mana, include a <code>&gt;</code> in the card string
-        to separate the cost from the produced mana. For example, <code>2*G&gt;WUBRG</code> means the card has a cost
-        (with uncolored mana noted by <code>*</code>) and can produce any of the colors listed after the
-        <code>&gt;</code>.
-    </li>
-    <li>
-        <strong>Normal Spells:</strong> Spells without a <code>&gt;</code> are treated as non-mana-producing spells.
-        Their cost is encoded in a string such as <code>3*U2W</code>, where digits before <code>*</code> or a color
-        letter denote the required mana.
-    </li>
-</ul>
-
-<h3>How the Simulation Works (High Level)</h3>
 <p>
-    The simulation runs many iterations (as set by the user) of a simplified game scenario. For each simulation:
+    To get your deck list from 17lands, click on the "Deck Export" button from the deck view and
+    select "Copy as plain text" and then paste into this app accordingly.
+</p>
+
+<h3>How the simulation works</h3>
+<p>
+    The simulation runs many iterations of a simplified game scenario. For each simulation:
 </p>
 <ol>
-    <li>A deck is built from your JSON configuration and shuffled.</li>
-    <li>For each turn, the hand size increases (depending on whether you are “on play” or “on draw”).</li>
-    <li>The simulation checks the hand to determine which spells are <em>dead</em> (i.e. not castable) based on
-        available mana from lands and any previously cast mana-producing spells.</li>
-    <li>The app also tests single-color land replacements in the hand to see which color would best reduce the number of
-        dead spells on that turn.</li>
-    <li>Results are aggregated across simulations and turned into summary statistics and charts.</li>
+    <li>Your deck list is parsed and each card name is converted to its mana requirements and production capabilities.
+    </li>
+    <li>For each simulation run, a deck is built from the parsed deck list and shuffled.</li>
+    <li>For each turn in the simulation, the hand size increases (depending on “on play” or “on draw” rules), and the
+        simulation
+        checks which spells are “dead” (i.e. not castable) based on mana producign cards (lands or cards that tap for
+        mana) that could have been played this turn or on previous turns.</li>
+    <li>The app also tests single-color land replacements to see which color would best reduce dead spells on that turn.
+    </li>
+    <li>Results are aggregated across simulations and displayed as summary statistics and charts.</li>
 </ol>
 
 <h3>Key Assumptions in the Simulation</h3>
