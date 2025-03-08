@@ -43,15 +43,19 @@ is maintained in a google sheet [here](https://docs.google.com/spreadsheets/d/1N
 
 ### TODO
 
+
+From the latest change:
+
+* Show x3 for a card that has 3 copies in the deck
+* Shouldn't turns go to 10 for the cards?
+* Looks like we are asking if we had an additional mana rather than if we replaced a mana, which isn't quite right
+* Maybe get rid of the `0` bubbles on the dead in hand as that's not really dead?
+
+Other:
+
+* Have a few examples with links the user can click on to automatically populate decks for testing (also include 17lands links for each?)
+
 * Why do we have two simulation runs?
-
-Some fixes for the latest change:
-
-* Make the frequency of turns dead in hand normalized for how many of the card you are playing
-* Check what a starting column deck looks like
-* The turns dead in hand should go to 10 no?
-* The new chart doesn't seem to quite square with the "most desired pip" chart?
-
 
 * Add traceback information in the errors as well as the error message
 
@@ -69,11 +73,7 @@ Some fixes for the latest change:
 
 * Change from the negative "dead cards" to the positive "castable spells"
 
-* Track for each spell (by key) (a) how often it is in hand, (b) how often it is castable, (c) % of time castable, (d) total mana cost, and (e) % castable over mana cost. Sort by (e) descending
-
 * Make the visualizations searchable
-
-* Add an example in the About for how to enter the JSON
 
 * Limit the number of simulations that can be run to 1,000
 * Limit the number of draw steps to 20
