@@ -145,11 +145,6 @@ def get_card_color(card_str: str) -> str:
         return 'slategray'
 
 
-import altair as alt
-import pandas as pd
-
-CANONICAL_COLORS = ["W", "U", "B", "R", "G"]
-
 class SpellDelayChart(BaseChart):
     """
     Creates a concatenated chart for spell delay.
@@ -241,7 +236,7 @@ class SpellDelayChart(BaseChart):
             "G": "green"
         }
         
-        cost_chart = alt.Chart(df_cost_long).mark_circle(size=100, stroke='darkgrey', strokeWidth=1).encode(
+        cost_chart = alt.Chart(df_cost_long).mark_circle(size=150, stroke='darkgrey', strokeWidth=1).encode(
             x=alt.X("position:Q", axis=None),
             y=alt.Y(
                 "card_name:N",
@@ -264,16 +259,20 @@ class SpellDelayChart(BaseChart):
             tooltip=["card_name:N", "cost_type:N", "value:Q"]
         )
         
-        cost_text = alt.Chart(df_cost_long).mark_text(color="black").encode(
-            x=alt.X("position:Q", axis=None),
-            y=alt.Y("card_name:N", sort=ordering),
-            text=alt.condition(
-                alt.datum.cost_type == "generic",
-                alt.Text("value:Q"),
-                alt.value("")
+        cost_text = (
+            alt.Chart(df_cost_long)
+            .mark_text(color="black", opacity=.8, size=8, font="monospace", dy=1)
+            .encode(
+                x=alt.X("position:Q", axis=None),
+                y=alt.Y("card_name:N", sort=ordering),
+                text=alt.condition(
+                    alt.datum.cost_type == "generic",
+                    alt.Text("value:Q"),
+                    alt.value("")
+                )
             )
         )
-        
+            
         cost_combined = cost_chart + cost_text
         
         # --- Dynamic Sizing ---

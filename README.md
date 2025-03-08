@@ -53,6 +53,8 @@ From the latest change:
 
 Other:
 
+* Update methodology to reflect latest changes
+
 * Have a few examples with links the user can click on to automatically populate decks for testing (also include 17lands links for each?)
 
 * Why do we have two simulation runs?
