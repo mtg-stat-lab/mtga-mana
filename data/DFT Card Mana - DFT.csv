@@ -1,0 +1,277 @@
+id,expansion,name,rarity,color_identity,mana_value,types,mana_string
+94803,DFT,Air Response Unit,uncommon,W,3,Artifact - Vehicle,2*W
+94804,DFT,Alacrian Armory,uncommon,W,4,Artifact,3*W
+94805,DFT,"Basri, Tomorrow's Champion",rare,W,1,Legendary Creature - Human Knight,W
+94806,DFT,Brightfield Glider,common,W,1,Creature - Possum Mount,W
+94807,DFT,Brightfield Mustang,common,W,4,Creature - Horse Mount,3*W
+94808,DFT,Broadcast Rambler,common,W,5,Artifact - Vehicle,4*W
+94809,DFT,Bulwark Ox,rare,W,2,Creature - Ox Mount,*W
+94810,DFT,Canyon Vaulter,uncommon,W,2,Creature - Kor Pilot,*W
+94811,DFT,Cloudspire Captain,uncommon,W,3,Creature - Human Pilot,2*W
+94812,DFT,Collision Course,common,W,2,Sorcery,*W
+94813,DFT,Daring Mechanic,common,W,3,Creature - Human Artificer,2*W
+94814,DFT,Detention Chariot,uncommon,W,6,Artifact - Vehicle,4*2W
+94815,DFT,Gallant Strike,uncommon,W,2,Instant,*W
+94816,DFT,Gloryheath Lynx,uncommon,W,2,Creature - Cat Mount,*W>W
+94817,DFT,Guardian Sunmare,rare,W,5,Creature - Horse Mount,3*2W
+94818,DFT,Guidelight Synergist,uncommon,W,4,Artifact Creature - Robot Artificer,3*W
+94819,DFT,Interface Ace,common,W,2,Artifact Creature - Robot Pilot,*W
+94820,DFT,Leonin Surveyor,common,W,2,Creature - Cat Scout,*W
+94821,DFT,Lightshield Parry,common,W,1,Instant,W
+94822,DFT,Lightwheel Enhancements,common,W,1,Enchantment - Aura,W
+94823,DFT,Lotusguard Disciple,common,W,3,Creature - Bird Cleric,2*W
+94824,DFT,Nesting Bot,uncommon,W,1,Artifact Creature - Robot,W
+94825,DFT,Perilous Snare,rare,W,3,Artifact,2*W
+94826,DFT,Pride of the Road,uncommon,W,4,Creature - Zombie Cat Warrior,3*W
+94827,DFT,Ride's End,common,W,5,Instant,4*W
+94828,DFT,Roadside Assistance,uncommon,W,3,Enchantment - Aura,2*W
+94829,DFT,Salvation Engine,mythic,W,5,Artifact - Vehicle,4*W
+94830,DFT,Skyseer's Chariot,rare,W,2,Artifact - Vehicle,*W
+94831,DFT,Spectacular Pileup,rare,W,5,Sorcery,3*2W
+94832,DFT,Spotcycle Scouter,common,W,2,Artifact - Vehicle,*W
+94833,DFT,"Sundial, Dawn Tyrant",uncommon,W,2,Legendary Artifact Creature - Construct,*W
+94834,DFT,Swiftwing Assailant,common,W,4,Creature - Bird Warrior,3*W
+94835,DFT,Tune Up,uncommon,W,4,Sorcery,3*W
+94836,DFT,Unswerving Sloth,uncommon,W,5,Creature - Sloth Mount,3*2W
+94837,DFT,Valor's Flagship,mythic,W,7,Legendary Artifact - Vehicle,4*3W
+94838,DFT,Voyager Glidecar,rare,W,1,Artifact - Vehicle,W
+94839,DFT,Voyager Quickwelder,common,W,3,Artifact Creature - Robot Artificer,2*W
+94840,DFT,Aether Syphon,uncommon,U,3,Artifact,*2U
+94841,DFT,Bounce Off,common,U,1,Instant,U
+94842,DFT,"Caelorna, Coral Tyrant",uncommon,U,2,Legendary Creature - Octopus,*U
+94843,DFT,Diversion Unit,uncommon,U,2,Artifact Creature - Robot,*U
+94844,DFT,Flood the Engine,common,U,3,Enchantment - Aura,2U
+94845,DFT,Gearseeker Serpent,common,U,7,Creature - Serpent,5*2U
+94846,DFT,Glitch Ghost Surveyor,common,U,3,Creature - Spirit Scout,2U
+94847,DFT,Guidelight Optimizer,common,U,2,Artifact Creature - Robot,*U>U
+94848,DFT,Howler's Heavy,common,U,4,Creature - Seal Pirate,3U
+94849,DFT,Hulldrifter,common,U,5,Artifact - Vehicle,3*2U
+94850,DFT,Keen Buccaneer,common,U,3,Creature - Octopus Pirate,2U
+94851,DFT,Memory Guardian,uncommon,U,5,Artifact Creature - Robot Artificer,4U
+94852,DFT,Midnight Mangler,common,U,2,Artifact - Vehicle,*U
+94853,DFT,Mindspring Merfolk,rare,U,1,Creature - Merfolk Wizard,U
+94854,DFT,"Mu Yanling, Wind Rider",mythic,U,4,Legendary Creature - Human Wizard Pilot,2*2U
+94855,DFT,Nimble Thopterist,common,U,4,Creature - Vedalken Artificer,3U
+94856,DFT,Possession Engine,rare,U,5,Artifact - Vehicle,3*2U
+94857,DFT,Rangers' Refueler,uncommon,U,2,Artifact - Vehicle,*U
+94858,DFT,Repurposing Bay,rare,U,3,Artifact,2U
+94859,DFT,Riverchurn Monument,rare,U,2,Artifact,*U
+94860,DFT,Roadside Blowout,uncommon,U,3,Sorcery,2U
+94861,DFT,Sabotage Strategist,uncommon,U,4,Creature - Vedalken Ranger,2*2U
+94862,DFT,Scrounging Skyray,uncommon,U,2,Creature - Fish Pirate,*U
+94863,DFT,Skystreak Engineer,common,U,2,Creature - Human Pilot,*U
+94864,DFT,Slick Imitator,uncommon,U,2,Creature - Ooze,*U
+94865,DFT,Spectral Interference,common,U,2,Instant,*U
+94866,DFT,Spell Pierce,uncommon,U,1,Instant,U
+94867,DFT,Spikeshell Harrier,uncommon,U,5,Artifact Creature - Robot Turtle,4U
+94868,DFT,Stall Out,common,U,2,Sorcery,*U
+94869,DFT,Stock Up,uncommon,U,3,Sorcery,2U
+94870,DFT,Thopter Fabricator,rare,U,3,Artifact - Vehicle,2U
+94871,DFT,Trade the Helm,uncommon,U,5,Sorcery,4U
+94872,DFT,Transit Mage,uncommon,U,3,Creature - Human Wizard,2U
+94873,DFT,Trip Up,common,U,4,Instant,3U
+94874,DFT,Unstoppable Plan,rare,U,3,Enchantment,2U
+94875,DFT,"Vnwxt, Verbose Host",rare,U,2,Legendary Creature - Homunculus,*U
+94876,DFT,Waxen Shapethief,rare,U,4,Creature - Shapeshifter,3U
+94877,DFT,Ancient Vendetta,uncommon,B,4,Sorcery,3*B
+94878,DFT,Back on Track,uncommon,B,5,Sorcery,4*B
+94879,DFT,Bloodghast,rare,B,2,Creature - Vampire Spirit,2B
+94880,DFT,Carrion Cruiser,uncommon,B,3,Artifact - Vehicle,2*B
+94881,DFT,Chitin Gravestalker,common,B,6,Creature - Insect Warrior,5*B
+94882,DFT,Cryptcaller Chariot,rare,B,4,Artifact - Vehicle,3*B
+94883,DFT,Cursecloth Wrappings,rare,B,4,Artifact,2*2B
+94884,DFT,Deathless Pilot,common,B,2,Creature - Zombie Pilot,*B
+94885,DFT,Demonic Junker,rare,B,7,Artifact - Vehicle,6*B
+94886,DFT,Engine Rat,common,B,1,Creature - Zombie Rat,B
+94887,DFT,Gas Guzzler,rare,B,1,Creature - Vampire Rogue,B
+94888,DFT,Gastal Raider,uncommon,B,3,Creature - Vampire Rogue,2*B
+94889,DFT,"Gonti, Night Minister",rare,B,4,Legendary Creature - Aetherborn Rogue,2*2B
+94890,DFT,Grim Bauble,common,B,1,Artifact,B
+94891,DFT,Grim Javelineer,common,B,3,Creature - Human Warrior,2*B
+94892,DFT,Hellish Sideswipe,uncommon,B,1,Sorcery,B
+94893,DFT,Hour of Victory,uncommon,B,3,Enchantment,2*B
+94894,DFT,Intimidation Tactics,uncommon,B,1,Sorcery,B
+94895,DFT,"Kalakscion, Hunger Tyrant",uncommon,B,3,Legendary Creature - Crocodile,*2B
+94896,DFT,The Last Ride,mythic,B,1,Legendary Artifact - Vehicle,B
+94897,DFT,Locust Spray,uncommon,B,1,Instant,B
+94898,DFT,Maximum Overdrive,common,B,2,Instant,*B
+94899,DFT,Momentum Breaker,uncommon,B,2,Enchantment,*B
+94900,DFT,Mutant Surveyor,common,B,3,Creature - Mutant Scout,2*B
+94901,DFT,Pactdoll Terror,common,B,4,Artifact Creature - Toy,3*B
+94902,DFT,Quag Feast,rare,B,2,Sorcery,*B
+94903,DFT,Ripclaw Wrangler,common,B,4,Artifact - Vehicle,3*B
+94904,DFT,Risen Necroregent,uncommon,B,5,Creature - Zombie Cat Knight,4*B
+94905,DFT,Risky Shortcut,common,B,3,Sorcery,2*B
+94906,DFT,Shefet Archfiend,uncommon,B,7,Creature - Demon,5*2B
+94907,DFT,The Speed Demon,mythic,B,5,Legendary Creature - Demon,3*2B
+94908,DFT,Spin Out,common,B,3,Instant,*2B
+94909,DFT,Streaking Oilgorger,common,B,5,Creature - Vampire,4*B
+94910,DFT,Syphon Fuel,common,B,5,Instant,4*B
+94911,DFT,Wickerfolk Indomitable,uncommon,B,4,Artifact Creature - Scarecrow,3*B
+94912,DFT,Wreckage Wickerfolk,common,B,2,Artifact Creature - Scarecrow,*B
+94913,DFT,Wretched Doll,uncommon,B,2,Artifact Creature - Toy,*B
+94914,DFT,Adrenaline Jockey,uncommon,R,3,Creature - Minotaur Pilot,2*R
+94915,DFT,Boommobile,rare,R,4,Artifact - Vehicle,2*2R
+94916,DFT,Burner Rocket,common,R,2,Artifact - Vehicle,*R
+94917,DFT,Burnout Bashtronaut,rare,R,1,Creature - Goblin Warrior,R
+94918,DFT,"Chandra, Spark Hunter",mythic,R,4,Legendary Planeswalker - Chandra,3*R
+94919,DFT,Clamorous Ironclad,common,R,4,Artifact - Vehicle,3*R
+94920,DFT,Count on Luck,rare,R,3,Enchantment,3R
+94921,DFT,Crash and Burn,common,R,4,Instant,3*R
+94922,DFT,"Daretti, Rocketeer Engineer",rare,R,5,Legendary Creature - Goblin Artificer,4*R
+94923,DFT,Draconautics Engineer,rare,R,2,Creature - Goblin Artificer,*R
+94924,DFT,Dracosaur Auxiliary,uncommon,R,6,Creature - Dinosaur Dragon Mount,4*2R
+94925,DFT,Dynamite Diver,common,R,1,Creature - Goblin Pilot,R
+94926,DFT,Endrider Catalyzer,common,R,2,Creature - Human Warrior,*R
+94927,DFT,Endrider Spikespitter,uncommon,R,4,Creature - Human Mercenary,3*R
+94928,DFT,Fuel the Flames,uncommon,R,3,Instant,2*R
+94929,DFT,Full Throttle,rare,R,6,Sorcery,4*2R
+94930,DFT,Gastal Blockbuster,common,R,3,Creature - Human Berserker,2*R
+94931,DFT,Gastal Thrillroller,rare,R,3,Artifact - Vehicle,2*R
+94932,DFT,Gilded Ghoda,common,R,2,Creature - Horse Mount,*R>WUBRG
+94933,DFT,Goblin Surveyor,common,R,3,Creature - Goblin Scout,2*R
+94934,DFT,Greasewrench Goblin,uncommon,R,1,Creature - Goblin Artificer,R
+94935,DFT,"Hazoret, Godseeker",mythic,R,2,Legendary Creature - God,*R
+94936,DFT,Howlsquad Heavy,rare,R,3,Creature - Goblin Mercenary,2*R
+94937,DFT,Kickoff Celebrations,common,R,2,Enchantment,*R
+94938,DFT,Lightning Strike,common,R,2,Instant,*R
+94939,DFT,Magmakin Artillerist,common,R,3,Creature - Elemental Pirate,2*R
+94940,DFT,Marauding Mako,uncommon,R,1,Creature - Shark Pirate,R
+94941,DFT,Outpace Oblivion,uncommon,R,3,Enchantment,2*R
+94942,DFT,Pacesetter Paragon,uncommon,R,3,Creature - Human Pilot,2*R
+94943,DFT,Pedal to the Metal,common,R,1,Instant,R
+94944,DFT,Prowcatcher Specialist,common,R,2,Creature - Goblin Warrior,*R
+94945,DFT,Push the Limit,uncommon,R,7,Sorcery,5*2R
+94946,DFT,Reckless Velocitaur,uncommon,R,4,Creature - Minotaur Pilot,3*R
+94947,DFT,Road Rage,uncommon,R,1,Instant,R
+94948,DFT,Skycrash,uncommon,R,2,Instant,*R
+94949,DFT,Spire Mechcycle,uncommon,R,5,Artifact - Vehicle,4*R
+94950,DFT,Thunderhead Gunner,common,R,5,Creature - Shark Pirate,4*R
+94951,DFT,"Tyrox, Saurid Tyrant",uncommon,R,2,Legendary Creature - Dinosaur Warrior,*R
+94952,DFT,Afterburner Expert,rare,G,3,Creature - Goblin Artificer,2*G
+94953,DFT,Agonasaur Rex,rare,G,5,Creature - Dinosaur,3*2G
+94954,DFT,Alacrian Jaguar,common,G,5,Creature - Cat Mount,4*G
+94955,DFT,Autarch Mammoth,uncommon,G,6,Creature - Elephant Mount,4*2G
+94956,DFT,Beastrider Vanguard,common,G,2,Creature - Human Knight,*G
+94957,DFT,Bestow Greatness,common,G,3,Instant,2*G
+94958,DFT,Broken Wings,common,G,3,Instant,2*G
+94959,DFT,Defend the Rider,uncommon,G,1,Instant,G
+94960,DFT,District Mascot,rare,G,1,Creature - Dog Mount,G
+94961,DFT,Dredger's Insight,uncommon,G,2,Enchantment,*G
+94962,DFT,Earthrumbler,uncommon,G,5,Artifact - Vehicle,4*G
+94963,DFT,Elvish Refueler,uncommon,G,3,Creature - Elf Druid,2*G
+94964,DFT,Fang Guardian,uncommon,G,4,Creature - Ape Druid,3*G
+94965,DFT,Fang-Druid Summoner,uncommon,G,4,Creature - Ape Druid,3*G
+94966,DFT,Greenbelt Guardian,uncommon,G,2,Creature - Elf Ranger,*G
+94967,DFT,Hazard of the Dunes,common,G,4,Creature - Wurm,3*G
+94968,DFT,Jibbirik Omnivore,common,G,2,Creature - Beast,*G
+94969,DFT,Loxodon Surveyor,common,G,3,Creature - Elephant Scout,2*G
+94970,DFT,Lumbering Worldwagon,rare,G,3,Artifact - Vehicle,2*G>WUBRG
+94971,DFT,March of the World Ooze,mythic,G,6,Enchantment,3*3G
+94972,DFT,Migrating Ketradon,common,G,6,Creature - Dinosaur,4*2G
+94973,DFT,Molt Tender,uncommon,G,1,Creature - Insect Druid,G>WUBRG
+94974,DFT,Ooze Patrol,uncommon,G,4,Creature - Ooze,3*G
+94975,DFT,"Oviya, Automech Artisan",rare,G,4,Legendary Creature - Human Artificer,3*G
+94976,DFT,Plow Through,uncommon,G,1,Sorcery,G
+94977,DFT,Point the Way,uncommon,G,1,Enchantment,G
+94978,DFT,Pothole Mole,common,G,3,Creature - Mole,2*G
+94979,DFT,Regal Imperiosaur,rare,G,3,Creature - Dinosaur,*2G
+94980,DFT,Rise from the Wreck,uncommon,G,3,Sorcery,2*G
+94981,DFT,Run Over,common,G,2,Instant,*G
+94982,DFT,Silken Strength,common,G,2,Enchantment - Aura,*G
+94983,DFT,Stampeding Scurryfoot,common,G,1,Creature - Mouse,G
+94984,DFT,"Terrian, World Tyrant",uncommon,G,5,Legendary Creature - Dinosaur Ooze,2*3G
+94985,DFT,Thunderous Velocipede,mythic,G,3,Artifact - Vehicle,*2G
+94986,DFT,Veloheart Bike,common,G,3,Artifact - Vehicle,2*G>WUBRG
+94987,DFT,Venomsac Lagac,common,G,2,Creature - Lizard Mount,*G
+94988,DFT,Webstrike Elite,rare,G,2,Creature - Insect Archer,2G
+94989,DFT,"Aatchik, Emerald Radian",rare,BG,6,Legendary Creature - Insect Druid,3*2BG
+94990,DFT,Apocalypse Runner,uncommon,BR,4,Artifact - Vehicle,2*BR
+94991,DFT,Boom Scholar,uncommon,GR,3,Creature - Goblin Advisor,1*GR
+94992,DFT,Boosted Sloop,uncommon,RU,3,Artifact - Vehicle,1*RU
+94993,DFT,Brightglass Gearhulk,mythic,GW,4,Artifact Creature - Construct,2G2W
+94994,DFT,Broadside Barrage,uncommon,RU,3,Instant,1*RU
+94995,DFT,Broodheart Engine,uncommon,BG,2,Artifact,BG
+94996,DFT,"Captain Howler, Sea Scourge",rare,RU,4,Legendary Creature - Shark Pirate,2*RU
+94997,DFT,"Caradora, Heart of Alacria",rare,GW,4,Legendary Creature - Human Knight,2*GW
+94998,DFT,Cloudspire Coordinator,uncommon,RW,2,Creature - Human Pilot,RW
+94999,DFT,Cloudspire Skycycle,uncommon,RW,4,Artifact - Vehicle,2*RW
+95000,DFT,Coalstoke Gearhulk,mythic,BR,5,Artifact Creature - Construct,*2B2R
+95001,DFT,Debris Beetle,rare,BG,4,Artifact - Vehicle,2*BG
+95002,DFT,Dune Drifter,uncommon,BW,2,Artifact - Vehicle,*BW
+95003,DFT,Embalmed Ascendant,uncommon,BW,3,Creature - Zombie,*BW
+95004,DFT,Explosive Getaway,rare,RW,5,Sorcery,3*RW
+95005,DFT,"Far Fortune, End Boss",rare,BR,4,Legendary Creature - Human Mercenary,2*BR
+95006,DFT,Fearless Swashbuckler,rare,RU,3,Creature - Fish Pirate,*RU
+95007,DFT,Gastal Thrillseeker,uncommon,BR,2,Creature - Lizard Berserker,BR
+95008,DFT,Guidelight Pathmaker,uncommon,UW,6,Artifact - Vehicle,4*UW
+95009,DFT,Haunt the Network,uncommon,BU,5,Sorcery,3*BU
+95010,DFT,Haunted Hellride,uncommon,BU,3,Artifact - Vehicle,*BU
+95011,DFT,"Ketramose, the New Dawn",mythic,BW,3,Legendary Creature - God,*BW
+95012,DFT,"Kolodin, Triumph Caster",rare,RW,2,Legendary Creature - Human Pilot,RW
+95013,DFT,"Lagorin, Soul of Alacria",uncommon,GW,2,Legendary Creature - Beast Mount,GW
+95014,DFT,"Loot, the Pathfinder",mythic,GRU,5,Legendary Creature - Beast Noble,2*GRU
+95015,DFT,"Mendicant Core, Guidelight",rare,UW,2,Legendary Artifact Creature - Robot,UW
+95016,DFT,"Mimeoplasm, Revered One",mythic,BGU,3,Legendary Creature - Ooze,*BGU
+95017,DFT,Oildeep Gearhulk,mythic,BU,4,Artifact Creature - Construct,2U2B
+95018,DFT,Pyrewood Gearhulk,mythic,GR,6,Artifact Creature - Construct,2*2R2G
+95019,DFT,Rangers' Aetherhive,uncommon,GU,3,Artifact - Vehicle,*GU
+95020,DFT,"Redshift, Rocketeer Chief",rare,GR,2,Legendary Creature - Goblin Pilot,GR
+95021,DFT,Riptide Gearhulk,mythic,UW,5,Artifact Creature - Construct,*2W2U
+95022,DFT,Rocketeer Boostbuggy,uncommon,GR,2,Artifact - Vehicle,GR
+95023,DFT,"Sab-Sunen, Luxa Embodied",mythic,GU,5,Legendary Creature - God,3*GU
+95024,DFT,"Samut, the Driving Force",rare,GRW,6,Legendary Creature - Human Warrior Cleric,3*GRW
+95025,DFT,"Sita Varma, Masked Racer",rare,GU,2,Legendary Creature - Human Rogue,GU
+95026,DFT,Skyserpent Seeker,uncommon,GU,2,Creature - Snake,GU
+95027,DFT,Thundering Broodwagon,uncommon,BG,6,Artifact - Vehicle,2*2B2G
+95028,DFT,Veteran Beastrider,uncommon,GW,3,Creature - Human Knight,*GW
+95029,DFT,Voyage Home,uncommon,UW,7,Sorcery,5*UW
+95030,DFT,"Winter, Cursed Rider",rare,BU,2,Legendary Creature - Human Warlock,BU
+95031,DFT,"Zahur, Glory's Past",rare,BW,2,Legendary Creature - Zombie Cat Warrior,BW
+95032,DFT,Aetherjacket,common,,3,Artifact Creature - Thopter,3*
+95033,DFT,The Aetherspark,mythic,,4,Legendary Artifact Planeswalker - Equipment,4*
+95034,DFT,Camera Launcher,common,,3,Artifact Creature - Construct,3*
+95035,DFT,Guidelight Matrix,common,,2,Artifact,2*
+95036,DFT,Lifecraft Engine,rare,,3,Artifact - Vehicle,3*
+95037,DFT,Marketback Walker,rare,,0,Artifact Creature - Construct,2*
+95038,DFT,Marshals' Pathcruiser,uncommon,BGRUW,3,Artifact - Vehicle,3*>WUBRG
+95039,DFT,Monument to Endurance,rare,,3,Artifact,3*
+95040,DFT,Pit Automaton,uncommon,,2,Artifact Creature - Construct,2*
+95041,DFT,Racers' Scoreboard,uncommon,,4,Artifact,4*
+95042,DFT,Radiant Lotus,mythic,,6,Artifact,6*
+95043,DFT,Rover Blades,uncommon,,3,Artifact - Equipment Vehicle,3*
+95044,DFT,Scrap Compactor,common,,1,Artifact,*
+95045,DFT,Skybox Ferry,common,,5,Artifact - Vehicle,5*
+95046,DFT,Starting Column,common,,3,Artifact,3*>WUBRG
+95047,DFT,Ticket Tortoise,common,,2,Artifact Creature - Turtle,2*>WUBRG
+95048,DFT,Walking Sarcophagus,common,,2,Artifact Creature - Zombie Cat,2*
+95049,DFT,Wreck Remover,common,,4,Artifact Creature - Construct,4*
+95050,DFT,Amonkhet Raceway,uncommon,,0,Land,>*
+95051,DFT,Avishkar Raceway,common,,0,Land,>*
+95052,DFT,Bleachbone Verge,rare,BW,0,Land,>BW
+95053,DFT,Bloodfell Caves,common,BR,0,Land,>BR
+95054,DFT,Blossoming Sands,common,GW,0,Land,>GW
+95055,DFT,Country Roads,uncommon,W,0,Land,>W
+95056,DFT,Dismal Backwater,common,BU,0,Land,>BU
+95057,DFT,Foul Roads,uncommon,B,0,Land,>B
+95058,DFT,Jungle Hollow,common,BG,0,Land,>BG
+95059,DFT,Muraganda Raceway,rare,,0,Land,>*
+95060,DFT,Night Market,common,,0,Land,>WUBRG
+95061,DFT,Reef Roads,uncommon,U,0,Land,>U
+95062,DFT,Riverpyre Verge,rare,RU,0,Land,>RU
+95063,DFT,Rocky Roads,uncommon,R,0,Land,>R
+95064,DFT,Rugged Highlands,common,GR,0,Land,>GR
+95065,DFT,Scoured Barrens,common,BW,0,Land,>BW
+95066,DFT,Sunbillow Verge,rare,RW,0,Land,>RW
+95067,DFT,Swiftwater Cliffs,common,RU,0,Land,>RU
+95068,DFT,Thornwood Falls,common,GU,0,Land,>GU
+95069,DFT,Tranquil Cove,common,UW,0,Land,>UW
+95070,DFT,Wastewood Verge,rare,BG,0,Land,>BG
+95071,DFT,Wild Roads,uncommon,G,0,Land,>G
+95072,DFT,Willowrush Verge,rare,GU,0,Land,>GU
+95073,DFT,Wind-Scarred Crag,common,RW,0,Land,>RW
+95074,DFT,Plains,basic,W,0,Basic Land - Plains,>W
+95077,DFT,Island,basic,U,0,Basic Land - Island,>U
+95080,DFT,Swamp,basic,B,0,Basic Land - Swamp,>B
+95083,DFT,Mountain,basic,R,0,Basic Land - Mountain,>R
+95086,DFT,Forest,basic,G,0,Basic Land - Forest,>G

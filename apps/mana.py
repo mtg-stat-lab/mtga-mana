@@ -6,15 +6,19 @@ from flask import Flask, render_template, request, jsonify
 import json
 import numpy as np
 import pandas as pd
+import random
 
 from lib.mana import run_simulation, CANONICAL_COLORS
 from lib.viz import DistributionChart, BestColorChart
-
-app = Flask(__name__)
+from lib.deck import parse_deck_list  # new: using deck list parser
 
 # Calculate the absolute path to the project root
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 app = Flask(__name__, template_folder=os.path.join(basedir, "templates"))
+
+# Load the CSV of card data (ensure the relative path is correct)
+csv_path = os.path.join(basedir, "data", "DFT Card Mana - DFT.csv")
+df_cards = pd.read_csv(csv_path)
 
 @app.route('/')
 def index():
@@ -29,13 +33,12 @@ def simulate():
         draws = int(data['draws'])
         simulations = int(data['simulations'])
         seed = int(data['seed'])
-
-        # 'on_play_or_draw' is optional; default 'play'
         on_play_or_draw = data.get('on_play_or_draw', 'play').lower()
         on_play = (on_play_or_draw == 'play')
 
-        # The user now provides one single deck JSON
-        deck_dict = json.loads(data['deck_json'])
+        # --- New: Parse deck list from pasted text ---
+        deck_list_str = data['deck_list']  # now using deck_list instead of deck_json
+        deck_dict, _ = parse_deck_list(deck_list_str, df_cards)  # ignore sideboard
 
         # Run the simulation
         df_summary, df_distribution = run_simulation(
@@ -62,7 +65,7 @@ def simulate():
         total_dead_spells = df_distribution['weighted_dead'].sum()
         expected_dead_per_turn = total_dead_spells / total_turns if total_turns > 0 else 0
 
-        # Determine "most desired" color
+        # Determine "most desired" pip color
         color_fractions = {}
         for c in CANONICAL_COLORS:
             col_name = f"pct_optimal_{c}"
@@ -70,19 +73,12 @@ def simulate():
             color_fractions[c] = frac_sum / (draws + 1) if draws > 0 else 0
         most_desired_color = max(color_fractions, key=color_fractions.get) if color_fractions else "N/A"
 
-        # Determine "least desired" color (among colors used in deck, if any)
+        # Determine "least desired" pip color (among colors used in deck, if any)
         used_spell_colors = set()
         for card_str in deck_dict.keys():
-            # We'll parse out the color letters from the cost part only
-            # Because something like ">BW" is a land, not a spell requiring B/W.
-            # We'll do a naive parse:
             if card_str.startswith('>'):
-                # It's a land
                 continue
-            # If it has a '>' inside, strip off the produce part
-            cost_part = card_str.split('>', 1)[0]
-            # Gather W/U/B/R/G from cost_part
-            for ch in cost_part:
+            for ch in card_str:
                 if ch in CANONICAL_COLORS:
                     used_spell_colors.add(ch)
 
