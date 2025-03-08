@@ -47,6 +47,10 @@ Started this shell based on this [ChatGPT conversation](https://chatgpt.com/shar
 
 * Add a visualization that shows when each card in the deck is typically able to be cast
 
+* Add status information about run time
+
+* Run the simulation swapping all basic lands and show those results?
+
 * Add a FAQ section
 
 * Change from the negative "dead cards" to the positive "castable spells"
