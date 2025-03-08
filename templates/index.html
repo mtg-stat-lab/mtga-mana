@@ -39,8 +39,10 @@
             white-space: pre;
         }
 
+        /* Ensure charts are responsive */
         #distribution-chart,
-        #best-color-chart {
+        #best-color-chart,
+        #spell-delay-chart {
             overflow-x: auto;
             max-width: 100%;
         }
@@ -113,7 +115,6 @@
                                 <input type="number" class="form-control" id="deck_size" name="deck_size" value="40"
                                     required>
                             </div>
-
                             <div class="mb-3">
                                 <label for="hand_size" class="form-label">
                                     Initial hand size
@@ -121,14 +122,12 @@
                                 <input type="number" class="form-control" id="hand_size" name="hand_size" value="7"
                                     required>
                             </div>
-
                             <div class="mb-3">
                                 <label for="draws" class="form-label">
                                     Number of draw steps
                                 </label>
                                 <input type="number" class="form-control" id="draws" name="draws" value="10" required>
                             </div>
-
                             <div class="mb-3">
                                 <label for="simulations" class="form-label">
                                     Number of simulations
@@ -136,14 +135,12 @@
                                 <input type="number" class="form-control" id="simulations" name="simulations"
                                     value="1000" required>
                             </div>
-
                             <div class="mb-3">
                                 <label for="seed" class="form-label">
                                     Random seed
                                 </label>
                                 <input type="number" class="form-control" id="seed" name="seed" value="42" required>
                             </div>
-
                             <div class="mb-3">
                                 <label for="on_play_or_draw" class="form-label">
                                     On the play or draw
@@ -153,7 +150,6 @@
                                     <option value="draw">Draw</option>
                                 </select>
                             </div>
-
                             <div class="mb-3">
                                 <label for="deck_list" class="form-label">
                                     Deck List
@@ -257,14 +253,12 @@ Sideboard
               </div>
             `;
                     } else {
-                        // success
                         const stats = json.stats;
                         const pctZeroDead = (stats.pct_turns_zero_dead * 100).toFixed(2);
                         const expDead = stats.expected_dead_per_turn.toFixed(2);
                         const mostColor = stats.most_desired_color;
                         const leastColor = stats.least_desired_color;
 
-                        // Show stats
                         const statCardsHTML = `
               <div class="row row-cols-2 row-cols-md-4 g-2">
                 <div class="col">
@@ -311,7 +305,7 @@ Sideboard
             `;
 
                         resultsContainer.innerHTML = `
-              <!-- stats card -->
+              <!-- Statistics card -->
               <div class="card mb-3 bg-light">
                 <div class="card-header fw-bold">
                   Statistics
@@ -320,27 +314,36 @@ Sideboard
                   ${statCardsHTML}
                 </div>
               </div>
-
-              <!-- distribution chart -->
-              <div class="card mb-3 bg-light">
-                <div class="card-header fw-bold">
-                  Distribution of dead spells
+              <!-- Bottom row: Left column with two stacked charts, Right column with new bubble chart -->
+              <div class="row">
+                <div class="col-md-8">
+                  <div class="card mb-3 bg-light">
+                    <div class="card-header fw-bold">
+                      Distribution of dead spells
+                    </div>
+                    <div class="card-body" id="distribution-chart"></div>
+                  </div>
+                  <div class="card mb-3 bg-light">
+                    <div class="card-header fw-bold">
+                      Best color to replace a land
+                    </div>
+                    <div class="card-body" id="best-color-chart"></div>
+                  </div>
                 </div>
-                <div class="card-body" id="distribution-chart"></div>
-              </div>
-
-              <!-- best color chart -->
-              <div class="card mb-3 bg-light">
-                <div class="card-header fw-bold">
-                  Best color to replace a land
+                <div class="col-md-4">
+                  <div class="card mb-3 bg-light">
+                    <div class="card-header fw-bold">
+                      Spell delay (Dead Turns per Spell)
+                    </div>
+                    <div class="card-body" id="spell-delay-chart"></div>
+                  </div>
                 </div>
-                <div class="card-body" id="best-color-chart"></div>
               </div>
             `;
 
-                        // Render charts
                         vegaEmbed('#distribution-chart', json.dist_chart_spec);
                         vegaEmbed('#best-color-chart', json.best_color_chart_spec);
+                        vegaEmbed('#spell-delay-chart', json.spell_delay_chart_spec);
                     }
                 })
                 .catch(error => {

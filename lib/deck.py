@@ -17,13 +17,14 @@ def lookup_card_id(df_cards: pd.DataFrame, card_string: str):
 
 def _process_line(
     line: str, df_cards: pd.DataFrame | None = None
-) -> (str | None, int | None):
+) -> tuple[str | None, str | None, int | None]:
     """
-    Process a single line of the deck, returning the card's mana string and its count.
+    Process a single line of the deck, returning:
+      (display_name, mana_string, count)
     """
     if not line or " " not in line:
         print(f"Skipping line due to incorrect format: '{line}'")
-        return None, None
+        return None, None, None
 
     try:
         # Remove any unwanted patterns (e.g., tournament info)
@@ -31,27 +32,28 @@ def _process_line(
         count, name = line.split(" ", 1)
         count = int(count)
         if df_cards is not None:
-            # Convert the card name into its canonical mana string using the CSV lookup.
-            name = lookup_card_id(df_cards, name)
+            mana = lookup_card_id(df_cards, name)
+            return name, mana, count
+        else:
+            return name, name, count
     except ValueError as e:
         print(f"Error processing line: '{line}' - {e}")
-        return None, None
+        return None, None, None
 
-    return name, count
-
-def _add_card_to_list(card_dict: dict, name: str, count: int):
-    if name is None or count is None:
+def _add_card_to_list(card_dict: dict, display_name: str, mana: str, count: int):
+    if display_name is None or mana is None or count is None:
         return
     else:
-        if name in card_dict:
-            card_dict[name] += count
+        if display_name in card_dict:
+            existing_mana, existing_count = card_dict[display_name]
+            card_dict[display_name] = (existing_mana, existing_count + count)
         else:
-            card_dict[name] = count
+            card_dict[display_name] = (mana, count)
 
 def parse_deck_list(deck_list: str, df_cards: pd.DataFrame | None) -> tuple[dict, dict]:
     """
     Parse a deck list (including "Deck" and "Sideboard" sections) into two dictionaries.
-    Each dictionary is a mapping of card mana string -> count.
+    Each dictionary is a mapping of card display name -> (mana string, count).
     """
     lines = deck_list.strip().split("\n")
     deck_dict = {}
@@ -67,11 +69,11 @@ def parse_deck_list(deck_list: str, df_cards: pd.DataFrame | None) -> tuple[dict
             is_deck = False
             continue
 
-        name, count = _process_line(line, df_cards)
+        display_name, mana, count = _process_line(line, df_cards)
         dict_to_use = deck_dict if is_deck else sideboard_dict
         try:
-            _add_card_to_list(dict_to_use, name, count)
+            _add_card_to_list(dict_to_use, display_name, mana, count)
         except Exception as e:
-            print(f"Error adding {name} card to list: {e}")
+            print(f"Error adding {display_name} card to list: {e}")
 
     return deck_dict, sideboard_dict

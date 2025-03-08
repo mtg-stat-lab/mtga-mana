@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 import random
 
-from lib.mana import run_simulation, CANONICAL_COLORS
-from lib.viz import DistributionChart, BestColorChart
-from lib.deck import parse_deck_list  # new: using deck list parser
+from lib.mana import run_simulation, run_simulation_with_delay, CANONICAL_COLORS
+from lib.viz import DistributionChart, BestColorChart, SpellDelayChart
+from lib.deck import parse_deck_list  # using deck list parser
 
 # Calculate the absolute path to the project root
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -36,11 +36,11 @@ def simulate():
         on_play_or_draw = data.get('on_play_or_draw', 'play').lower()
         on_play = (on_play_or_draw == 'play')
 
-        # --- New: Parse deck list from pasted text ---
-        deck_list_str = data['deck_list']  # now using deck_list instead of deck_json
+        # --- Parse deck list from pasted text ---
+        deck_list_str = data['deck_list']  # using deck_list instead of deck_json
         deck_dict, _ = parse_deck_list(deck_list_str, df_cards)  # ignore sideboard
 
-        # Run the simulation
+        # Run the simulation for dead spells and best color
         df_summary, df_distribution = run_simulation(
             deck_dict=deck_dict,
             total_deck_size=deck_size,
@@ -94,9 +94,22 @@ def simulate():
             "least_desired_color": least_desired_color
         }
 
+        # Run the delay simulation to track when spells become castable.
+        df_delay = run_simulation_with_delay(
+            deck_dict=deck_dict,
+            total_deck_size=deck_size,
+            initial_hand_size=hand_size,
+            draws=draws,
+            simulations=simulations,
+            seed=seed,
+            on_play=on_play
+        )
+        spell_delay_chart_spec = SpellDelayChart(df_delay).render_spec()
+
         return jsonify({
             'dist_chart_spec': dist_chart_spec,
             'best_color_chart_spec': best_color_chart_spec,
+            'spell_delay_chart_spec': spell_delay_chart_spec,
             'stats': stats
         })
 
