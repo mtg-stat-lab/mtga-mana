@@ -43,10 +43,11 @@ is maintained in a google sheet [here](https://docs.google.com/spreadsheets/d/1N
 
 ### TODO
 
+* Why do we have two simulation runs?
+
 Some fixes for the latest change:
 
 * Make the frequency of turns dead in hand normalized for how many of the card you are playing
-* Veloheart bike's cost isn't appearing correctly
 * Check what a starting column deck looks like
 * The turns dead in hand should go to 10 no?
 * The new chart doesn't seem to quite square with the "most desired pip" chart?
