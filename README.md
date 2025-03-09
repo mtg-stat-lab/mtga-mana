@@ -43,8 +43,6 @@ is maintained in a google sheet [here](https://docs.google.com/spreadsheets/d/1N
 
 ### TODO
 
-* Add linting for python and html
-
 * Why do we have two simulation runs?
 
 * Move expected dead spells per color to be the first summary card
@@ -64,10 +62,6 @@ From the latest change:
 Other:
 
 * Can you account for tapped lands appearing on the turn they are drawn not being useful?
-
-* Have o1 try to refactor this some more
-
-* Update methodology to reflect latest changes
 
 * Have a few examples with links the user can click on to automatically populate decks for testing (also include 17lands links for each?)
 
@@ -106,7 +100,7 @@ Other:
 To get the app into context for an LLM:
 
 ``` bash
-find . -type f \( -name '*.py' -o -name '*.html' -o -name '*.txt'\) -not -path './venv*' -print0 | sort -z | while IFS= read -r -d '' file; do
+find . -type f \( -name '*.py' -o -name '*.html' -o -name '*.txt' \) -not -path './venv*' -print0 | sort -z | while IFS= read -r -d '' file; do
   echo "===== $file ====="
   cat "$file"
   echo ""
