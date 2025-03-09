@@ -43,6 +43,8 @@ is maintained in a google sheet [here](https://docs.google.com/spreadsheets/d/1N
 
 ### TODO
 
+* Add linting for python and html
+
 * Why do we have two simulation runs?
 
 * Move expected dead spells per color to be the first summary card
