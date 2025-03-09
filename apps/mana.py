@@ -8,8 +8,19 @@ import numpy as np
 import pandas as pd
 import random
 
-from lib.mana import run_simulation, run_simulation_with_delay, CANONICAL_COLORS, parse_cost_string
-from lib.viz import DistributionChart, BestColorChart, SpellDelayChart
+from lib.mana import (
+    run_simulation,
+    run_simulation_with_delay,
+    CANONICAL_COLORS,
+    parse_cost_string
+)
+from lib.viz import (
+    DistributionChart,
+    # Remove BestColorChart import:
+    # BestColorChart,
+    SpellDelayChart,
+    MissingColorChart  # <-- New chart class we'll reference
+)
 from lib.deck import parse_deck_list  # using deck list parser
 
 # Calculate the absolute path to the project root
@@ -37,11 +48,10 @@ def simulate():
         on_play = (on_play_or_draw == 'play')
 
         # --- Parse deck list from pasted text ---
-        deck_list_str = data['deck_list']  # using deck_list instead of deck_json
-        deck_dict, _ = parse_deck_list(deck_list_str, df_cards)  # ignore sideboard
-        # deck_dict maps card display name -> (mana string, count)
+        deck_list_str = data['deck_list']
+        deck_dict, _ = parse_deck_list(deck_list_str, df_cards)
 
-        # Build a cost DataFrame for the cards including generic cost.
+        # Build a cost DataFrame for the cards (for the spell-delay chart).
         cost_rows = []
         for card_name, (mana, count) in deck_dict.items():
             # If the mana string contains '>', extract the cost portion before '>'
@@ -57,7 +67,7 @@ def simulate():
 
         df_cost = pd.DataFrame(cost_rows)
 
-        # Run the simulation for dead spells and best color.
+        # Run the simulation for dead spells distribution and missing-color statistics.
         df_summary, df_distribution = run_simulation(
             deck_dict=deck_dict,
             total_deck_size=deck_size,
@@ -68,11 +78,12 @@ def simulate():
             on_play=on_play
         )
 
-        # Create chart specs.
+        # Create chart specs
         dist_chart_spec = DistributionChart(df_distribution).render_spec()
-        best_color_chart_spec = BestColorChart(df_summary).render_spec()
+        # best_color_chart_spec = BestColorChart(df_summary).render_spec()  # REMOVED
+        missing_color_chart_spec = MissingColorChart(df_summary).render_spec()
 
-        # Calculate additional statistics.
+        # Calculate additional statistics for main summary
         total_turns = (draws + 1) * simulations
         zero_dead_rows = df_distribution[df_distribution['dead_spells'] == 0]
         num_zero_dead = zero_dead_rows['frequency'].sum()
@@ -82,36 +93,13 @@ def simulate():
         total_dead_spells = df_distribution['weighted_dead'].sum()
         expected_dead_per_turn = total_dead_spells / total_turns if total_turns > 0 else 0
 
-        # Determine "most desired" pip color.
-        color_fractions = {}
-        for c in CANONICAL_COLORS:
-            col_name = f"pct_optimal_{c}"
-            frac_sum = df_summary[col_name].sum() if col_name in df_summary.columns else 0
-            color_fractions[c] = frac_sum / (draws + 1) if draws > 0 else 0
-        most_desired_color = max(color_fractions, key=color_fractions.get) if color_fractions else "N/A"
-
-        # Determine "least desired" pip color (among colors used in deck, if any).
-        used_spell_colors = set()
-        for card_str in deck_dict.keys():
-            if card_str.startswith('>'):
-                continue
-            for ch in card_str:
-                if ch in CANONICAL_COLORS:
-                    used_spell_colors.add(ch)
-
-        if used_spell_colors:
-            least_desired_color = min(used_spell_colors, key=lambda c: color_fractions.get(c, 0))
-        else:
-            least_desired_color = "N/A"
-
+        # Remove the old 'most_desired_color' / 'least_desired_color' logic entirely
         stats = {
             "pct_turns_zero_dead": pct_turns_zero_dead,
-            "expected_dead_per_turn": expected_dead_per_turn,
-            "most_desired_color": most_desired_color,
-            "least_desired_color": least_desired_color
+            "expected_dead_per_turn": expected_dead_per_turn
         }
 
-        # Run the delay simulation to track when spells become castable.
+        # Run the delay simulation for the spell-delay chart
         df_delay = run_simulation_with_delay(
             deck_dict=deck_dict,
             total_deck_size=deck_size,
@@ -121,12 +109,11 @@ def simulate():
             seed=seed,
             on_play=on_play
         )
-        # Pass both the delay data and cost data to the SpellDelayChart.
         spell_delay_chart_spec = SpellDelayChart(df_delay, df_cost).render_spec()
 
         return jsonify({
             'dist_chart_spec': dist_chart_spec,
-            'best_color_chart_spec': best_color_chart_spec,
+            'missing_color_chart_spec': missing_color_chart_spec,
             'spell_delay_chart_spec': spell_delay_chart_spec,
             'stats': stats
         })

@@ -17,39 +17,23 @@
     <style>
         :root {
             --app-width: 1700px;
-            /* Total width of the app */
             --settings-width: 300px;
-            /* Fixed width for simulation settings */
             --left-chart-percentage: 50%;
-            /* Percentage of available width for left charts */
             --right-chart-percentage: 50%;
-            /* Percentage of available width for right charts */
         }
 
-        /* Main container */
         .app-container {
             max-width: var(--app-width);
             margin: auto;
         }
 
-        /* Left panel: simulation settings box */
         .simulation-settings {
             width: var(--settings-width);
         }
 
-        /* Right panel: simulation results (takes remaining width) */
         .simulation-results {
             flex-grow: 1;
             margin-left: 1rem;
-        }
-
-        /* Chart panels in dynamic results: widths set via inline style using CSS variables */
-        .left-chart-panel {
-            /* width set inline: var(--left-chart-percentage) */
-        }
-
-        .right-chart-panel {
-            /* width set inline: var(--right-chart-percentage) */
         }
 
         .bg-custom {
@@ -76,9 +60,8 @@
             white-space: pre;
         }
 
-        /* Ensure charts are responsive */
         #distribution-chart,
-        #best-color-chart,
+        #missing-color-chart,
         #spell-delay-chart {
             overflow-x: auto;
             max-width: 100%;
@@ -243,11 +226,9 @@
                         const stats = json.stats;
                         const pctZeroDead = (stats.pct_turns_zero_dead * 100).toFixed(2);
                         const expDead = stats.expected_dead_per_turn.toFixed(2);
-                        const mostColor = stats.most_desired_color;
-                        const leastColor = stats.least_desired_color;
 
                         const statCardsHTML = `
-              <div class="row row-cols-2 row-cols-md-4 g-2">
+              <div class="row row-cols-2 row-cols-md-2 g-2">
                 <div class="col">
                   <div class="card text-center border-0 bg-light">
                     <div class="card-body p-2">
@@ -261,22 +242,6 @@
                     <div class="card-body p-2">
                       <h6 class="card-title mb-1" style="font-size:0.85rem;">Expected dead spells per turn</h6>
                       <p class="card-text fw-bold">${expDead}</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="col">
-                  <div class="card text-center border-0 bg-light">
-                    <div class="card-body p-2">
-                      <h6 class="card-title mb-1" style="font-size:0.85rem;">Most desired pip color</h6>
-                      <p class="card-text fw-bold">${mostColor}</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="col">
-                  <div class="card text-center border-0 bg-light">
-                    <div class="card-body p-2">
-                      <h6 class="card-title mb-1" style="font-size:0.85rem;">Least desired pip color</h6>
-                      <p class="card-text fw-bold">${leastColor}</p>
                     </div>
                   </div>
                 </div>
@@ -299,8 +264,8 @@
                     <div class="card-body" id="distribution-chart"></div>
                   </div>
                   <div class="card mb-3 bg-light">
-                    <div class="card-header fw-bold">Best color to replace a land</div>
-                    <div class="card-body" id="best-color-chart"></div>
+                    <div class="card-header fw-bold">Dead spells by missing color</div>
+                    <div class="card-body" id="missing-color-chart"></div>
                   </div>
                 </div>
                 <div class="right-chart-panel" style="width: var(--right-chart-percentage);">
@@ -312,7 +277,7 @@
               </div>
             `;
                         vegaEmbed('#distribution-chart', json.dist_chart_spec);
-                        vegaEmbed('#best-color-chart', json.best_color_chart_spec);
+                        vegaEmbed('#missing-color-chart', json.missing_color_chart_spec);
                         vegaEmbed('#spell-delay-chart', json.spell_delay_chart_spec);
                     }
                 })

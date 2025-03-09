@@ -3,7 +3,7 @@
     Fill in the simulation settings on the left (deck size, initial hand size, number of draw steps, number of
     simulations, and random seed). Then, paste your deck list in the provided text area. The deck list should include
     a "Deck" section (which will be simulated) and a "Sideboard" section (which will be ignored).
-    Finally, click “Run simulation” to start the simulation and view the results and charts on the right.
+    Finally, click “Run simulation” to start and view the results.
 </p>
 
 <p>
@@ -20,81 +20,54 @@
     </li>
     <li>For each simulation run, a deck is built from the parsed deck list and shuffled.</li>
     <li>For each turn in the simulation, the hand size increases (depending on “on play” or “on draw” rules), and the
-        simulation
-        checks which spells are “dead” (i.e. not castable) based on mana producing cards (lands or cards that tap for
-        mana) that could have been played this turn or on previous turns.</li>
-    <li>The app also tests single-color land replacements to see which color would best reduce dead spells on that turn.
-    </li>
+        simulation checks which spells are “dead” (i.e. not castable) based on mana-producing cards (lands or cards that
+        tap for
+        mana) that could have been “played” in previous turns.</li>
+    <li>We also record how many spells are uncastable specifically because they are missing certain color pips. We
+        only count these as “missing color” if the total cost is within the number of lands available. That means
+        if the spell costs 3 total mana but we have 3 lands, we check if we have the correct colored sources. If
+        not, we say it’s “dead due to missing color(s).”</li>
     <li>Results are aggregated across simulations and displayed as summary statistics and charts.</li>
 </ol>
 
 <h3>Key Assumptions in the Simulation</h3>
 <ul>
-    <li>
-        <strong>Fixed Turn Structure:</strong> The simulation assumes a fixed number of turns and a set increase in hand
-        size (depending on “on play” or “on draw” rules).
-    </li>
-    <li>
-        <strong>One Mana per Land:</strong> Each land or mana-producing source is assumed to provide exactly one mana
-        per turn.
-    </li>
-    <li>
-        <strong>Simplified Casting:</strong> The simulation uses a basic algorithm to determine if a spell can be cast,
-        checking combinations of available mana sources without simulating more complex in‐game interactions.
-    </li>
-    <li>
-        <strong>No Re-check for Known Castables:</strong> Once a normal spell is deemed castable in a previous turn, it
-        is assumed to remain castable in later turns without further checks.
-    </li>
+    <li><strong>Fixed Turn Structure:</strong> We assume a fixed number of turns and a set increase in hand size
+        depending on the “on play” vs. “on draw” scenario.</li>
+    <li><strong>One Mana per Land:</strong> Each land or mana-producing source is assumed to provide exactly one mana
+        (of one color from its producible colors) per turn.</li>
+    <li><strong>Simplified Casting:</strong> The simulation tries to see if a spell can be cast by checking all possible
+        combinations of the available sources up to the number of lands playable that turn.</li>
+    <li><strong>No Re-check for Known Castables:</strong> Once a normal spell is deemed castable, we consider it
+        castable in subsequent turns without further checks.</li>
 </ul>
 
 <h3>Interpreting the Key Statistics</h3>
 <ul>
-    <li>
-        <strong>% of Turns with 0 Dead Spells:</strong> This statistic shows the proportion of simulated turns in which
-        every spell drawn could be cast.
-    </li>
-    <li>
-        <strong>Expected Dead Spells per Turn:</strong> This is the average number of spells per turn that are “dead”
-        (i.e. not castable).
-    </li>
-    <li>
-        <strong>Most Desired Pip Color:</strong> The color which, if used to replace a land, most frequently resulted in
-        fewer dead spells.
-    </li>
-    <li>
-        <strong>Least Desired Pip Color:</strong> Among the colors present in your deck, the one that least improved the
-        situation when swapped in.
+    <li><strong>% of Turns with 0 Dead Spells:</strong> This statistic shows the proportion of simulated turns in which
+        every spell drawn could be cast.</li>
+    <li><strong>Expected Dead Spells per Turn:</strong> This is the average number of spells per turn that are “dead.”
     </li>
 </ul>
 
 <h3>How to Read the Charts</h3>
 <ul>
-    <li>
-        <strong>Distribution of Dead Spells Chart:</strong> This bar chart displays the fraction of simulations (for
+    <li><strong>Distribution of Dead Spells Chart:</strong> This bar chart displays the fraction of simulations (for
         each turn) that resulted in a given number of dead spells, ignoring cases where there were zero dead spells.
     </li>
-    <li>
-        <strong>Best Color to Replace a Land Chart:</strong> This line chart shows, turn by turn, the percentage of
-        simulations where switching a land to a specific color would have been most beneficial in reducing dead spells.
+    <li><strong>Dead Spells by Missing Color Chart:</strong> This line chart shows, turn by turn, how many spells on
+        average
+        are uncastable specifically because they need a color pip the available lands do not provide (even though there
+        are enough
+        total lands to pay the cost).
     </li>
+    <li><strong>Turns Spent Dead in Hand:</strong> This chart shows for each non-land spell how many turns it lingered
+        uncastable in your hand before you had sufficient mana to cast it for the first time.</li>
 </ul>
 
-<h3>Simplification of Real MTG Games</h3>
+<h3>Disclaimer about Simplification of Real MTG Games</h3>
 <p>
-    This simulation focuses solely on mana availability and the ability to cast spells. It does not capture many of the
-    complexities of real Magic. For example:
-</p>
-<ul>
-    <li>It does not consider card abilities such as card draw, cycling, tutoring, exhaust abilities, etc.</li>
-    <li>We aren't simulating anything related to gameplay (this is just about greedy use of mana).</li>
-    <li>A card is considered castable if it would have been possible to cast it given the mana sources you have, even if
-        you have other competing uses for that mana.</li>
-    <li>It doesn't consider the value of holding onto a card for a future turn.</li>
-    <li>It is able to make perfect decisions about what lands to have played in prior turns in order to maximize the
-        ability to cast any given spell on this turn.</li>
-    <li>We aren't keeping track of any affinity cost reductions.</li>
-</ul>
-<p>
-    So, in general, think about this is the most <i>optimistic</i> scenario for spending your mana.</li>
+    This simulation focuses solely on mana availability. Real Magic gameplay involves far more factors such as
+    triggered abilities, synergy, additional card draws, side strategies, etc. The simulator is simply a
+    rough guideline for how frequently your spells end up uncastable due to mana issues.
 </p>
