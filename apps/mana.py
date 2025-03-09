@@ -10,7 +10,7 @@ from flask import Flask, jsonify, render_template, request
 
 from lib.cost_parser import CANONICAL_COLORS, parse_cost_string
 from lib.deck import parse_deck_list
-from lib.simulator import run_simulation_all  # <-- Single unified simulator
+from lib.simulator import run_simulation_all
 from lib.viz import DistributionChart, MissingColorChart, SpellDelayChart
 
 # Calculate the absolute path to the project root
@@ -60,7 +60,7 @@ def simulate():
 
         df_cost = pd.DataFrame(cost_rows)
 
-        # --- Run the unified simulation ---
+        # --- Run the simulation ---
         df_summary, df_distribution, df_delay = run_simulation_all(
             deck_dict=deck_dict,
             total_deck_size=deck_size,
