@@ -14,20 +14,27 @@
     <style>
         :root {
             --app-width: 1700px;
+            /* Total width of the app */
             --settings-width: 300px;
+            /* Fixed width for simulation settings */
             --left-chart-percentage: 50%;
+            /* Percentage of available width for left charts */
             --right-chart-percentage: 50%;
+            /* Percentage of available width for right charts */
         }
 
+        /* Main container */
         .app-container {
             max-width: var(--app-width);
             margin: auto;
         }
 
+        /* Left panel: simulation settings box */
         .simulation-settings {
             width: var(--settings-width);
         }
 
+        /* Right panel: simulation results (takes remaining width) */
         .simulation-results {
             flex-grow: 1;
             margin-left: 1rem;
@@ -57,6 +64,7 @@
             white-space: pre;
         }
 
+        /* Ensure charts are responsive */
         #distribution-chart,
         #missing-color-chart,
         #spell-delay-chart {
@@ -166,7 +174,9 @@
                     <div class="card-header bg-secondary text-white">
                         Simulation results
                     </div>
-                    <div class="card-body" id="results-container"></div>
+                    <div class="card-body" id="results-container">
+                        <!-- Dynamically filled simulation results will appear here -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -191,6 +201,7 @@
               </div>
             `;
 
+            // Gather form data
             const formData = new FormData(form);
             const data = {};
             formData.forEach((value, key) => {
@@ -283,6 +294,7 @@
 
         document.getElementById('runSimulationHeader').addEventListener('click', runSimulation);
 
+        // Bootstrap tooltips
         document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
             new bootstrap.Tooltip(el);
         });

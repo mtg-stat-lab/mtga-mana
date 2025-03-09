@@ -74,11 +74,11 @@ def simulate():
             on_play=on_play
         )
 
-        # Create chart specs
+        # Create chart specs.
         dist_chart_spec = DistributionChart(df_distribution).render_spec()
         missing_color_chart_spec = MissingColorChart(df_summary).render_spec()
 
-        # Calculate additional statistics
+        # Calculate additional statistics.
         total_turns = (draws + 1) * simulations
         zero_dead_rows = df_distribution[df_distribution['dead_spells'] == 0]
         num_zero_dead = zero_dead_rows['frequency'].sum()

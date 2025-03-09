@@ -5,6 +5,12 @@ import pandas as pd
 from .mana import CANONICAL_COLORS, CANONICAL_COLOR_VALUES
 
 class BaseChart(ABC):
+    """
+    Abstract base class for Altair charts in this app.
+    Each chart class should:
+      - store references to the relevant data
+      - implement `render_spec` which returns the Altair JSON spec (as a Python dict)
+    """     
     def __init__(self, df: pd.DataFrame):
         self.df = df
 
@@ -13,6 +19,10 @@ class BaseChart(ABC):
         pass
 
 class DistributionChart(BaseChart):
+    """
+    Creates a bar chart of how often each number of dead spells occurs per turn,
+    ignoring the case of 0 dead spells.
+    """    
     def render_spec(self) -> dict:
         if self.df.empty:
             chart = alt.Chart(pd.DataFrame({"No Data": []})).mark_text(text="No data to show.")
@@ -119,6 +129,10 @@ class MissingColorChart(BaseChart):
         return chart.to_dict()
 
 def get_card_color(card_str: str) -> str:
+    """
+    Determine the color for a card. If the card is mono-colored, return its mapped color.
+    If multi-colored, return 'slategray'.
+    """    
     clean = card_str.lstrip('>')
     colors = set(ch for ch in clean if ch in CANONICAL_COLORS)
     if len(colors) == 1:
@@ -128,6 +142,16 @@ def get_card_color(card_str: str) -> str:
         return 'slategray'
 
 class SpellDelayChart(BaseChart):
+    """
+    Creates a concatenated chart for spell delay.
+    Left: a cost chart showing the mana cost as a row of circles.
+          The y-axis displays the spell name.
+    Right: a bubble chart showing the distribution of dead turns per spell.
+           The y-axis labels are hidden so that the spell name appears only on the left.
+    Spells are ordered by expected (weighted mean) dead turns descending.
+    For generic cost, a single light grey circle shows the total generic cost (with a black number).
+    For colored costs, one circle per pip required, using the corresponding color with a dark grey outline.
+    """    
     def __init__(self, df_delay: pd.DataFrame, df_cost: pd.DataFrame):
         self.df_delay = df_delay
         self.df_cost = df_cost
@@ -217,16 +241,21 @@ class SpellDelayChart(BaseChart):
 
         cost_combined = cost_chart + cost_text
 
+        # --- Dynamic Sizing ---
+        # Height: rows (cards) * row_height
         row_height = 30
         num_cards = len(ordering)
         chart_height = num_cards * row_height
 
+        # Left chart width: max pips * col_width
         col_width = 10
         left_chart_width = max_pips * col_width
 
+        # Right chart width: (max_delay + 1) * turn_width
         turn_width = 30
         right_chart_width = (max_delay + 1) * turn_width
 
+        # Apply the properties with dynamic sizing
         cost_combined = cost_combined.properties(
             width=left_chart_width,
             height=chart_height
@@ -236,12 +265,14 @@ class SpellDelayChart(BaseChart):
             height=chart_height
         )
 
+        # Concatenate horizontally, sharing the y-scale
         concat_chart = alt.hconcat(
             cost_combined,
             bubble,
             spacing=10
         ).resolve_scale(y='shared')
 
+        # Remove outer bounding box
         final_chart = (
             concat_chart
             .configure(background='transparent')

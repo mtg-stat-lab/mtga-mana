@@ -11,6 +11,11 @@ CANONICAL_COLORS: list[str] = ['W', 'U', 'B', 'R', 'G']
 CANONICAL_COLOR_VALUES: list[str] = ['grey', 'blue', 'black', 'red', 'green']
 
 def parse_cost_string(cost_str: str) -> tuple[int, Counter[str]]:
+    """
+    Parse a cost string such as '3*U2W' into (uncolored, color_costs).
+    Example:
+      '3*U2W' -> (3, {'U':1, 'W':2})
+    """    
     pattern = r'(\d*\*|\d*[WUBRG])'
     matches = re.findall(pattern, cost_str)
     uncolored = 0
@@ -31,6 +36,20 @@ def parse_cost_string(cost_str: str) -> tuple[int, Counter[str]]:
     return uncolored, color_costs
 
 class Card:
+    """
+    Represents any card:
+      - Lands (leading '>'), e.g. '>BW'
+      - Mana-producing spells ('>' in the middle), e.g. '3*>WUBRG'
+      - Normal spells (no '>'), e.g. 'BW'.
+    Attributes:
+        card_str: The mana string representation.
+        display_name: The card's actual name.
+        is_land: True if it's a land (leading '>').
+        can_produce_mana: True if it's a land or a mana-producing spell.
+        cost_uncolored: Generic mana required.
+        cost_colors: Counts of colored mana required.
+        producible_colors: Which color(s) this card can produce.
+    """    
     def __init__(self, card_str: str, display_name: str | None = None) -> None:
         self.card_str: str = card_str
         self.display_name: str = display_name if display_name is not None else card_str
@@ -41,6 +60,7 @@ class Card:
         self.producible_colors: set[str] = set()
 
         if self.is_land:
+            # For lands, everything after '>' is the set of producible colors
             produce_part = card_str[1:]
             self.can_produce_mana = True
             self.producible_colors = set(produce_part)
@@ -59,6 +79,10 @@ class Card:
         return f"Card({self.display_name}, {self.card_str})"
 
 class Deck:
+    """
+    Deck of cards. Some positions may be None if the deck_dict
+    has fewer unique cards than total_size.
+    """    
     def __init__(self, cards: list[Card], total_deck_size: int = 40) -> None:
         self.cards: list[Card | None] = cards
         self.total_deck_size: int = total_deck_size
@@ -79,6 +103,9 @@ class Deck:
         return f"Deck(size={self.total_deck_size}, actual_list_len={len(self.cards)})"
 
 def build_deck_from_dict(deck_dict: dict[str, tuple[str, int]], total_deck_size: int = 40) -> Deck:
+    """
+    Build a Deck from a dictionary mapping card display name -> (mana string, quantity).
+    """    
     card_objs: list[Card] = []
     for display_name, (mana, qty) in deck_dict.items():
         for _ in range(qty):
@@ -244,6 +271,11 @@ def run_simulation_with_delay(
     seed: int | None = None,
     on_play: bool = True
 ) -> pd.DataFrame:
+    """
+    Simulate a persistent hand and record, for each non-land spell,
+    how many turns it sat in hand (i.e. delay between draw and first being castable).
+    Lands are skipped because they are always castable on turn 1.
+    """    
     if seed is not None:
         random.seed(seed)
     
@@ -252,18 +284,22 @@ def run_simulation_with_delay(
         deck = build_deck_from_dict(deck_dict, total_deck_size)
         deck.shuffle()
         hand = []
+        # Draw the opening hand
         for _ in range(initial_hand_size):
             if deck.cards:
                 card = deck.cards.pop(0)
+                # Only assign draw_turn for non-land cards
                 if card is not None and not card.is_land:
                     card.draw_turn = 1
                 hand.append(card)
 
         persisted_mana_producers = []
 
+        # Simulate turn-by-turn (assuming one card drawn per turn after turn 1)
         for turn in range(1, draws + 1):
             if turn > 1 and deck.cards:
                 card = deck.cards.pop(0)
+                # Only assign draw_turn for non-land cards
                 if card is not None and not card.is_land:
                     card.draw_turn = turn
                 hand.append(card)
@@ -271,9 +307,10 @@ def run_simulation_with_delay(
             available_sources = persisted_mana_producers + [c for c in hand if c is not None and c.is_land]
             lands_playable = turn if not on_play else (turn + 1)
 
+            # Process only non-land cards for delay tracking
             for card in hand.copy():
                 if card is None or card.is_land:
-                    continue
+                    continue # Skip lands entirely
                 if _can_cast_with_sources(card, available_sources, lands_playable):
                     delay = turn - getattr(card, 'draw_turn', turn)
                     delay_records.append({
