@@ -178,44 +178,50 @@ def _count_dead_spells_expanded(
 
     return dead_count, newly_castable
 
-def _best_single_color_to_replace(
+def _average_spells_revived_if_replace_any_one_land(
     hand: list[Card | None],
     turn: int,
     on_play: bool,
     persisted_producers: list[Card],
     persisted_castable_spells: set[Card],
-    colors_to_test: list[str] = CANONICAL_COLORS
-) -> str:
-    base_dead, _ = _count_dead_spells_expanded(
-        hand, turn, on_play, persisted_producers, persisted_castable_spells
+    color: str
+) -> float:
+    """
+    For each land in 'hand', temporarily replace it with a land of `color`,
+    see how many more spells become castable than with the original configuration,
+    and then average that across all the lands in the hand.
+    """
+    # First figure out how many spells are currently alive
+    base_dead_count, _ = _count_dead_spells_expanded(
+        hand, turn, on_play, persisted_producers[:], persisted_castable_spells.copy()
     )
-    hand_mana = [c for c in hand if (c is not None) and c.is_land]
-    if not hand_mana:
-        return "none"
+    # Count how many spells are in hand total (ignoring lands)
+    total_spells = len([c for c in hand if c and not c.is_land])
+    base_alive_count = total_spells - base_dead_count
 
-    best_color = "none"
-    best_dead_count = base_dead
+    lands_in_hand = [c for c in hand if c is not None and c.is_land]
+    if not lands_in_hand:
+        return 0.0  # No lands to replace => no change
 
-    for color in colors_to_test:
-        single_color_land = Card('>' + color)
+    total_revived = 0
+    for old_land in lands_in_hand:
+        test_hand = hand[:]  # shallow copy
+        test_producers = persisted_producers[:]
+        test_castable = persisted_castable_spells.copy()
 
-        for original_land in hand_mana:
-            idx = hand.index(original_land)
-            old_land = hand[idx]
-            hand[idx] = single_color_land
+        # Replace old_land with a new land of the chosen color
+        idx = test_hand.index(old_land)
+        test_hand[idx] = Card('>' + color, display_name=f"{color}_basic")
 
-            new_dead, _ = _count_dead_spells_expanded(
-                hand, turn, on_play, persisted_producers, persisted_castable_spells
-            )
-            hand[idx] = old_land
+        new_dead_count, _ = _count_dead_spells_expanded(
+            test_hand, turn, on_play, test_producers, test_castable
+        )
+        new_alive_count = total_spells - new_dead_count
+        revived = new_alive_count - base_alive_count
+        total_revived += revived
 
-            if new_dead < best_dead_count:
-                best_dead_count = new_dead
-                best_color = color
-                if best_dead_count == 0:
-                    return best_color
-
-    return best_color
+    # Return the average across all replaced lands
+    return total_revived / len(lands_in_hand)
 
 def run_simulation(
     deck_dict: dict[str, tuple[str, int]],
@@ -229,8 +235,18 @@ def run_simulation(
     if seed is not None:
         random.seed(seed)
 
+    # Figure out which colors are used in the deck (for spells)
+    used_spell_colors: set[str] = set()
+    for card_name, (mana_str, qty) in deck_dict.items():
+        if not mana_str.startswith('>'):  # skip pure land lines
+            for ch in mana_str:
+                if ch in CANONICAL_COLORS:
+                    used_spell_colors.add(ch)
+
     dead_counts_per_turn: list[list[int]] = [[] for _ in range(draws)]
-    best_color_counts: list[Counter[str]] = [Counter() for _ in range(draws)]
+    # We'll store sum of revived spells only for used colors
+    from collections import defaultdict
+    revived_color_counts = [defaultdict(float) for _ in range(draws)]
 
     for _ in range(simulations):
         deck = build_deck_from_dict(deck_dict, total_deck_size)
@@ -241,11 +257,11 @@ def run_simulation(
 
         for turn in range(1, draws + 1):
             if on_play:
-                hand_size = initial_hand_size + (turn - 1)
+                hand_size_for_turn = initial_hand_size + (turn - 1)
             else:
-                hand_size = initial_hand_size + turn
+                hand_size_for_turn = initial_hand_size + turn
 
-            hand = deck.draw_top_n(hand_size)
+            hand = deck.draw_top_n(hand_size_for_turn)
 
             dead_count, newly_castable = _count_dead_spells_expanded(
                 hand,
@@ -258,39 +274,41 @@ def run_simulation(
 
             persisted_mana_producers.extend(newly_castable)
 
-            best_color = _best_single_color_to_replace(
-                hand,
-                turn,
-                on_play,
-                persisted_mana_producers,
-                persisted_castable_spells
-            )
-            best_color_counts[turn - 1][best_color] += 1
+            # For each used color, see how many spells would be revived
+            for color in used_spell_colors:
+                revived_avg = _average_spells_revived_if_replace_any_one_land(
+                    hand,
+                    turn,
+                    on_play,
+                    persisted_mana_producers,
+                    persisted_castable_spells,
+                    color
+                )
+                revived_color_counts[turn - 1][color] += revived_avg
 
+    # Build df_summary
     rows_summary: list[dict[str, float | str]] = []
-    extended_colors = CANONICAL_COLORS + ["none"]
 
     for turn in range(1, draws + 1):
         turn_dead_list = dead_counts_per_turn[turn - 1]
         count_ge1 = sum(1 for d in turn_dead_list if d >= 1)
         p_dead = count_ge1 / len(turn_dead_list)
 
-        total_sims = float(simulations)
-        color_fracs = {
-            color: best_color_counts[turn - 1][color] / total_sims
-            for color in extended_colors
-        }
-
         row = {
             "turn": turn,
             "turn_label": str(turn),
             "p_dead": p_dead,
-            **{f"pct_optimal_{c}": color_fracs[c] for c in extended_colors}
         }
+        # Add the average revived spells for each used color
+        for c in used_spell_colors:
+            total_revived_for_color = revived_color_counts[turn - 1][c]
+            row[f"avg_revived_{c}"] = total_revived_for_color / float(simulations)
+
         rows_summary.append(row)
 
     df_summary = pd.DataFrame(rows_summary)
 
+    # Build df_distribution
     distribution_rows: list[dict[str, int | float]] = []
     for turn in range(1, draws + 1):
         freq_counter = Counter(dead_counts_per_turn[turn - 1])
@@ -329,32 +347,28 @@ def run_simulation_with_delay(
         deck.shuffle()
         hand = []
         # Draw the opening hand
-        for _ in range(initial_hand_size):
+        for _h in range(initial_hand_size):
             if deck.cards:
                 card = deck.cards.pop(0)
-                # Only assign draw_turn for non-land cards
                 if card is not None and not card.is_land:
                     card.draw_turn = 1
                 hand.append(card)
         
         persisted_mana_producers = []
 
-        # Simulate turn-by-turn (assuming one card drawn per turn after turn 1)
         for turn in range(1, draws + 1):
             if turn > 1 and deck.cards:
                 card = deck.cards.pop(0)
-                # Only assign draw_turn for non-land cards
                 if card is not None and not card.is_land:
                     card.draw_turn = turn
                 hand.append(card)
             
             available_sources = persisted_mana_producers + [c for c in hand if c is not None and c.is_land]
             lands_playable = turn
-            
-            # Process only non-land cards for delay tracking
+
             for card in hand.copy():
                 if card is None or card.is_land:
-                    continue  # Skip lands entirely
+                    continue
                 if _can_cast_with_sources(card, available_sources, lands_playable):
                     delay = turn - getattr(card, 'draw_turn', turn)
                     delay_records.append({

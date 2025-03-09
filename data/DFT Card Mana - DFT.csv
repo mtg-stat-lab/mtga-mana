@@ -218,7 +218,7 @@ id,expansion,name,rarity,color_identity,mana_value,types,mana_string
 95019,DFT,Rangers' Aetherhive,uncommon,GU,3,Artifact - Vehicle,*GU
 95020,DFT,"Redshift, Rocketeer Chief",rare,GR,2,Legendary Creature - Goblin Pilot,GR
 95021,DFT,Riptide Gearhulk,mythic,UW,5,Artifact Creature - Construct,*2W2U
-95022,DFT,Rocketeer Boostbuggy,uncommon,GR,2,Artifact - Vehicle,GR
+95022,DFT,Rocketeer Boostbuggy,uncommon,GR,2,Artifact - Vehicle,GR>WUBRG
 95023,DFT,"Sab-Sunen, Luxa Embodied",mythic,GU,5,Legendary Creature - God,3*GU
 95024,DFT,"Samut, the Driving Force",rare,GRW,6,Legendary Creature - Human Warrior Cleric,3*GRW
 95025,DFT,"Sita Varma, Masked Racer",rare,GU,2,Legendary Creature - Human Rogue,GU

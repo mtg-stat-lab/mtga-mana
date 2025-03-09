@@ -23,8 +23,8 @@
         simulation
         checks which spells are “dead” (i.e. not castable) based on mana producing cards (lands or cards that tap for
         mana) that could have been played this turn or on previous turns.</li>
-    <li>The app also tests single-color land replacements to see which color would best reduce dead spells on that turn.
-    </li>
+    <li>The app also tests single-land “recoloring” scenarios, **but only for colors that actually appear in your
+        spells**, to see how many spells become castable if you replaced each land with one of those colors.</li>
     <li>Results are aggregated across simulations and displayed as summary statistics and charts.</li>
 </ol>
 
@@ -59,12 +59,9 @@
         (i.e. not castable).
     </li>
     <li>
-        <strong>Most Desired Pip Color:</strong> The color which, if used to replace a land, most frequently resulted in
-        fewer dead spells.
-    </li>
-    <li>
-        <strong>Least Desired Pip Color:</strong> Among the colors present in your deck, the one that least improved the
-        situation when swapped in.
+        <strong>Most Desired Pip Color / Least Desired Pip Color:</strong> Computed by summing how many spells you could
+        “revive” across all turns if you replaced lands with each color; whichever color sums to the greatest
+        improvement is “most desired,” and the lowest is “least desired.”
     </li>
 </ul>
 
@@ -75,8 +72,13 @@
         each turn) that resulted in a given number of dead spells, ignoring cases where there were zero dead spells.
     </li>
     <li>
-        <strong>Best Color to Replace a Land Chart:</strong> This line chart shows, turn by turn, the percentage of
-        simulations where switching a land to a specific color would have been most beneficial in reducing dead spells.
+        <strong>Average Revived Spells by Color Chart:</strong> This line chart shows, turn by turn, how many spells
+        (on average) would be revived if you replaced any one of your lands with a land of each color
+        **that actually appears in your spells**.
+    </li>
+    <li>
+        <strong>Spell Delay Chart:</strong> Shows how many turns each non-land spell typically spends “dead in hand”
+        before it becomes castable, plus a simple cost visualization.
     </li>
 </ul>
 
@@ -96,5 +98,5 @@
     <li>We aren't keeping track of any affinity cost reductions.</li>
 </ul>
 <p>
-    So, in general, think about this is the most <i>optimistic</i> scenario for spending your mana.</li>
+    So, in general, think about this as the most <i>optimistic</i> scenario for spending your mana.
 </p>

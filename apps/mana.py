@@ -57,7 +57,7 @@ def simulate():
 
         df_cost = pd.DataFrame(cost_rows)
 
-        # Run the simulation for dead spells and best color.
+        # Run the simulation for dead spells and color-based revived spells.
         df_summary, df_distribution = run_simulation(
             deck_dict=deck_dict,
             total_deck_size=deck_size,
@@ -82,15 +82,7 @@ def simulate():
         total_dead_spells = df_distribution['weighted_dead'].sum()
         expected_dead_per_turn = total_dead_spells / total_turns if total_turns > 0 else 0
 
-        # Determine "most desired" pip color.
-        color_fractions = {}
-        for c in CANONICAL_COLORS:
-            col_name = f"pct_optimal_{c}"
-            frac_sum = df_summary[col_name].sum() if col_name in df_summary.columns else 0
-            color_fractions[c] = frac_sum / (draws + 1) if draws > 0 else 0
-        most_desired_color = max(color_fractions, key=color_fractions.get) if color_fractions else "N/A"
-
-        # Determine "least desired" pip color (among colors used in deck, if any).
+        # Determine used spell colors
         used_spell_colors = set()
         for card_str in deck_dict.keys():
             if card_str.startswith('>'):
@@ -99,9 +91,21 @@ def simulate():
                 if ch in CANONICAL_COLORS:
                     used_spell_colors.add(ch)
 
-        if used_spell_colors:
-            least_desired_color = min(used_spell_colors, key=lambda c: color_fractions.get(c, 0))
+        # Compute "most desired color" and "least desired color" using the new avg_revived_{c} columns,
+        # but only for used colors.
+        color_totals = {}
+        for c in used_spell_colors:
+            col_name = f"avg_revived_{c}"
+            if col_name in df_summary.columns:
+                color_totals[c] = df_summary[col_name].sum()
+            else:
+                color_totals[c] = 0
+
+        if color_totals:
+            most_desired_color = max(color_totals, key=color_totals.get)
+            least_desired_color = min(color_totals, key=color_totals.get)
         else:
+            most_desired_color = "N/A"
             least_desired_color = "N/A"
 
         stats = {
