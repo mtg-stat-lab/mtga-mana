@@ -16,18 +16,14 @@ from lib.mana import (
 )
 from lib.viz import (
     DistributionChart,
-    # Remove BestColorChart import:
-    # BestColorChart,
     SpellDelayChart,
-    MissingColorChart  # <-- New chart class we'll reference
+    MissingColorChart
 )
-from lib.deck import parse_deck_list  # using deck list parser
+from lib.deck import parse_deck_list
 
-# Calculate the absolute path to the project root
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 app = Flask(__name__, template_folder=os.path.join(basedir, "templates"))
 
-# Load the CSV of card data (ensure the relative path is correct)
 csv_path = os.path.join(basedir, "data", "DFT Card Mana - DFT.csv")
 df_cards = pd.read_csv(csv_path)
 
@@ -47,14 +43,11 @@ def simulate():
         on_play_or_draw = data.get('on_play_or_draw', 'play').lower()
         on_play = (on_play_or_draw == 'play')
 
-        # --- Parse deck list from pasted text ---
         deck_list_str = data['deck_list']
         deck_dict, _ = parse_deck_list(deck_list_str, df_cards)
 
-        # Build a cost DataFrame for the cards (for the spell-delay chart).
         cost_rows = []
         for card_name, (mana, count) in deck_dict.items():
-            # If the mana string contains '>', extract the cost portion before '>'
             if '>' in mana:
                 cost_str = mana.split('>')[0]
             else:
@@ -67,7 +60,6 @@ def simulate():
 
         df_cost = pd.DataFrame(cost_rows)
 
-        # Run the simulation for dead spells distribution and missing-color statistics.
         df_summary, df_distribution = run_simulation(
             deck_dict=deck_dict,
             total_deck_size=deck_size,
@@ -78,12 +70,9 @@ def simulate():
             on_play=on_play
         )
 
-        # Create chart specs
         dist_chart_spec = DistributionChart(df_distribution).render_spec()
-        # best_color_chart_spec = BestColorChart(df_summary).render_spec()  # REMOVED
         missing_color_chart_spec = MissingColorChart(df_summary).render_spec()
 
-        # Calculate additional statistics for main summary
         total_turns = (draws + 1) * simulations
         zero_dead_rows = df_distribution[df_distribution['dead_spells'] == 0]
         num_zero_dead = zero_dead_rows['frequency'].sum()
@@ -93,13 +82,11 @@ def simulate():
         total_dead_spells = df_distribution['weighted_dead'].sum()
         expected_dead_per_turn = total_dead_spells / total_turns if total_turns > 0 else 0
 
-        # Remove the old 'most_desired_color' / 'least_desired_color' logic entirely
         stats = {
             "pct_turns_zero_dead": pct_turns_zero_dead,
             "expected_dead_per_turn": expected_dead_per_turn
         }
 
-        # Run the delay simulation for the spell-delay chart
         df_delay = run_simulation_with_delay(
             deck_dict=deck_dict,
             total_deck_size=deck_size,

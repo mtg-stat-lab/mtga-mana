@@ -5,12 +5,6 @@ import pandas as pd
 from .mana import CANONICAL_COLORS, CANONICAL_COLOR_VALUES
 
 class BaseChart(ABC):
-    """
-    Abstract base class for Altair charts in this app.
-    Each chart class should:
-      - store references to the relevant data
-      - implement `render_spec` which returns the Altair JSON spec (as a Python dict)
-    """
     def __init__(self, df: pd.DataFrame):
         self.df = df
 
@@ -18,16 +12,8 @@ class BaseChart(ABC):
     def render_spec(self) -> dict:
         pass
 
-
 class DistributionChart(BaseChart):
-    """
-    Creates a bar chart of how often each number of dead spells occurs per turn,
-    ignoring the case of 0 dead spells.
-    """
     def render_spec(self) -> dict:
-        plot_width = 600
-        plot_height = 300
-
         if self.df.empty:
             chart = alt.Chart(pd.DataFrame({"No Data": []})).mark_text(text="No data to show.")
             return chart.to_dict()
@@ -75,19 +61,12 @@ class DistributionChart(BaseChart):
         )
         return chart.to_dict()
 
-
 class MissingColorChart(BaseChart):
-    """
-    New chart that shows the average number of spells that are dead
-    due to missing each color pip, by turn.
-    We'll assume columns named 'avg_missing_W', 'avg_missing_U', etc.
-    """
     def render_spec(self) -> dict:
         if self.df.empty:
             chart = alt.Chart(pd.DataFrame({"No Data": []})).mark_text(text="No data to show.")
             return chart.to_dict()
 
-        # We'll rename columns for altair fold, e.g. 'avg_missing_W' -> 'W'
         rename_map = {}
         for c in CANONICAL_COLORS:
             rename_map[f"avg_missing_{c}"] = c
@@ -98,7 +77,6 @@ class MissingColorChart(BaseChart):
         max_turn = int(df_copy["turn"].max())
         turn_sort = [str(i) for i in range(1, max_turn + 1)]
 
-        # We'll fold the columns [W, U, B, R, G] into a color_type/value pair
         chart = (
             alt.Chart(df_copy)
             .transform_fold(
@@ -140,13 +118,7 @@ class MissingColorChart(BaseChart):
         )
         return chart.to_dict()
 
-
 def get_card_color(card_str: str) -> str:
-    """
-    Determine the color for a card. If the card is mono-colored, return its mapped color.
-    If multi-colored, return 'slategray'.
-    """
-    from .mana import CANONICAL_COLORS
     clean = card_str.lstrip('>')
     colors = set(ch for ch in clean if ch in CANONICAL_COLORS)
     if len(colors) == 1:
@@ -155,11 +127,7 @@ def get_card_color(card_str: str) -> str:
     else:
         return 'slategray'
 
-
 class SpellDelayChart(BaseChart):
-    """
-    Same as before, no changes other than removing references to the old best-color usage.
-    """
     def __init__(self, df_delay: pd.DataFrame, df_cost: pd.DataFrame):
         self.df_delay = df_delay
         self.df_cost = df_cost
@@ -181,12 +149,10 @@ class SpellDelayChart(BaseChart):
             tooltip=["card_name:N", "delay:Q", "count:Q"]
         )
 
-        # Transform cost DataFrame into long format.
         cost_long_rows = []
         for _, row in df_cost.iterrows():
             card_name = row["card_name"]
             pos = 0
-            # Add a circle for generic cost if > 0.
             if row["generic"] > 0:
                 cost_long_rows.append({
                     "card_name": card_name,
@@ -251,7 +217,6 @@ class SpellDelayChart(BaseChart):
 
         cost_combined = cost_chart + cost_text
 
-        # Dynamic sizing
         row_height = 30
         num_cards = len(ordering)
         chart_height = num_cards * row_height

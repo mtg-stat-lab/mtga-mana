@@ -6,10 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-
-    <!-- Vega, Vega-Lite, vega-embed -->
     <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
@@ -97,14 +94,12 @@
         </div>
     </nav>
 
-    <!-- Modal: Methodology -->
     <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="aboutModalLabel">Methodology</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     {% include "methodology.html" %}
@@ -117,11 +112,9 @@
             </div>
         </div>
     </div>
-    <!-- End modal -->
 
     <div class="container-fluid py-3 app-container">
         <div class="d-flex align-items-stretch">
-            <!-- Simulation settings box -->
             <div class="simulation-settings">
                 <div class="card h-100">
                     <div class="card-header bg-primary text-white">
@@ -168,15 +161,12 @@
                     </div>
                 </div>
             </div>
-            <!-- Simulation results -->
             <div class="simulation-results">
                 <div class="card h-100">
                     <div class="card-header bg-secondary text-white">
                         Simulation results
                     </div>
-                    <div class="card-body" id="results-container">
-                        <!-- Dynamically filled simulation results will appear here -->
-                    </div>
+                    <div class="card-body" id="results-container"></div>
                 </div>
             </div>
         </div>
@@ -186,7 +176,6 @@
         <small class="text-white-50">© 2025 Mathamagic, Inc.</small>
     </footer>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function runSimulation() {
@@ -194,15 +183,14 @@
             const resultsContainer = document.getElementById('results-container');
 
             resultsContainer.innerHTML = `
-          <div class="d-flex align-items-center">
-            <div class="spinner-border text-primary me-2" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-            <strong>Running simulation, please wait...</strong>
-          </div>
-        `;
+              <div class="d-flex align-items-center">
+                <div class="spinner-border text-primary me-2" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <strong>Running simulation, please wait...</strong>
+              </div>
+            `;
 
-            // Gather form data
             const formData = new FormData(form);
             const data = {};
             formData.forEach((value, key) => {
@@ -218,64 +206,62 @@
                 .then(json => {
                     if (json.error) {
                         resultsContainer.innerHTML = `
-              <div class="alert alert-danger" role="alert">
-                <strong>Error:</strong> ${json.error}
-              </div>
-            `;
+                      <div class="alert alert-danger" role="alert">
+                        <strong>Error:</strong> ${json.error}
+                      </div>
+                    `;
                     } else {
                         const stats = json.stats;
                         const pctZeroDead = (stats.pct_turns_zero_dead * 100).toFixed(2);
                         const expDead = stats.expected_dead_per_turn.toFixed(2);
 
                         const statCardsHTML = `
-              <div class="row row-cols-2 row-cols-md-2 g-2">
-                <div class="col">
-                  <div class="card text-center border-0 bg-light">
-                    <div class="card-body p-2">
-                      <h6 class="card-title mb-1" style="font-size:0.85rem;">% of turns with 0 dead spells</h6>
-                      <p class="card-text fw-bold">${pctZeroDead}%</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="col">
-                  <div class="card text-center border-0 bg-light">
-                    <div class="card-body p-2">
-                      <h6 class="card-title mb-1" style="font-size:0.85rem;">Expected dead spells per turn</h6>
-                      <p class="card-text fw-bold">${expDead}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            `;
+                      <div class="row row-cols-2 row-cols-md-2 g-2">
+                        <div class="col">
+                          <div class="card text-center border-0 bg-light">
+                            <div class="card-body p-2">
+                              <h6 class="card-title mb-1" style="font-size:0.85rem;">% of turns with 0 dead spells</h6>
+                              <p class="card-text fw-bold">${pctZeroDead}%</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col">
+                          <div class="card text-center border-0 bg-light">
+                            <div class="card-body p-2">
+                              <h6 class="card-title mb-1" style="font-size:0.85rem;">Expected dead spells per turn</h6>
+                              <p class="card-text fw-bold">${expDead}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    `;
 
                         resultsContainer.innerHTML = `
-              <!-- Statistics card -->
-              <div class="card mb-3 bg-light">
-                <div class="card-header fw-bold">Statistics</div>
-                <div class="card-body">
-                  ${statCardsHTML}
-                </div>
-              </div>
-              <!-- Chart panels row -->
-              <div class="row">
-                <div class="left-chart-panel" style="width: var(--left-chart-percentage);">
-                  <div class="card mb-3 bg-light">
-                    <div class="card-header fw-bold">Distribution of dead spells</div>
-                    <div class="card-body" id="distribution-chart"></div>
-                  </div>
-                  <div class="card mb-3 bg-light">
-                    <div class="card-header fw-bold">Dead spells by missing color</div>
-                    <div class="card-body" id="missing-color-chart"></div>
-                  </div>
-                </div>
-                <div class="right-chart-panel" style="width: var(--right-chart-percentage);">
-                  <div class="card mb-3 bg-light">
-                    <div class="card-header fw-bold">Turns each spell spent dead in hand after drawing</div>
-                    <div class="card-body" id="spell-delay-chart"></div>
-                  </div>
-                </div>
-              </div>
-            `;
+                      <div class="card mb-3 bg-light">
+                        <div class="card-header fw-bold">Statistics</div>
+                        <div class="card-body">
+                          ${statCardsHTML}
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="left-chart-panel" style="width: var(--left-chart-percentage);">
+                          <div class="card mb-3 bg-light">
+                            <div class="card-header fw-bold">Distribution of dead spells</div>
+                            <div class="card-body" id="distribution-chart"></div>
+                          </div>
+                          <div class="card mb-3 bg-light">
+                            <div class="card-header fw-bold">Dead spells by missing color</div>
+                            <div class="card-body" id="missing-color-chart"></div>
+                          </div>
+                        </div>
+                        <div class="right-chart-panel" style="width: var(--right-chart-percentage);">
+                          <div class="card mb-3 bg-light">
+                            <div class="card-header fw-bold">Turns each spell spent dead in hand after drawing</div>
+                            <div class="card-body" id="spell-delay-chart"></div>
+                          </div>
+                        </div>
+                      </div>
+                    `;
                         vegaEmbed('#distribution-chart', json.dist_chart_spec);
                         vegaEmbed('#missing-color-chart', json.missing_color_chart_spec);
                         vegaEmbed('#spell-delay-chart', json.spell_delay_chart_spec);
@@ -283,10 +269,10 @@
                 })
                 .catch(error => {
                     resultsContainer.innerHTML = `
-            <div class="alert alert-danger" role="alert">
-              <strong>Error:</strong> ${error}
-            </div>
-          `;
+                  <div class="alert alert-danger" role="alert">
+                    <strong>Error:</strong> ${error}
+                  </div>
+                `;
                 });
         }
 
@@ -297,7 +283,6 @@
 
         document.getElementById('runSimulationHeader').addEventListener('click', runSimulation);
 
-        // Bootstrap tooltips
         document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
             new bootstrap.Tooltip(el);
         });
