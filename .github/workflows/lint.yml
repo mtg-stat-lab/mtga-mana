@@ -13,10 +13,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.13'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install HTMLHint
+        run: npm install -g htmlhint
 
       - name: Upgrade pip and install dependencies
         run: |
