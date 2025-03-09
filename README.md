@@ -106,7 +106,7 @@ Other:
 To get the app into context for an LLM:
 
 ``` bash
-find . -type f \( -name '*.py' -o -name '*.html' \) -not -path './venv*' -print0 | sort -z | while IFS= read -r -d '' file; do
+find . -type f \( -name '*.py' -o -name '*.html' -o -name '*.txt'\) -not -path './venv*' -print0 | sort -z | while IFS= read -r -d '' file; do
   echo "===== $file ====="
   cat "$file"
   echo ""
