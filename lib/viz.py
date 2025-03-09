@@ -170,6 +170,7 @@ class SpellDelayChart(BaseChart):
         # --------------------------------------------------
         # 2) BUBBLE CHART (using % for bubble size)
         # --------------------------------------------------
+
         bubble = (
             alt.Chart(aggregated)
             .mark_circle()
@@ -347,7 +348,7 @@ class SpellDelayChart(BaseChart):
 
         # Concat horizontally, sharing the Y scale
         final_chart = (
-            alt.hconcat(cost_combined, copy_text, bubble, spacing=0)
+            alt.hconcat(cost_combined, copy_text, bubble, spacing=-10)
             .resolve_scale(y="shared")
             .configure(background="transparent")
             .configure_view(stroke=None)
