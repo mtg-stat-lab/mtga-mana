@@ -1,6 +1,8 @@
 import difflib
-import pandas as pd
 import re
+
+import pandas as pd
+
 
 def lookup_card_id(df_cards: pd.DataFrame, card_string: str):
     """
@@ -14,6 +16,7 @@ def lookup_card_id(df_cards: pd.DataFrame, card_string: str):
         raise ValueError(f"Could not find a match for card {card_string}")
     card_rows = df_cards.set_index("name").loc[card_name]
     return card_rows.loc["mana_string"]
+
 
 def _process_line(
     line: str, df_cards: pd.DataFrame | None = None
@@ -40,6 +43,7 @@ def _process_line(
         print(f"Error processing line: '{line}' - {e}")
         return None, None, None
 
+
 def _add_card_to_list(card_dict: dict, display_name: str, mana: str, count: int):
     if display_name is None or mana is None or count is None:
         return
@@ -49,6 +53,7 @@ def _add_card_to_list(card_dict: dict, display_name: str, mana: str, count: int)
             card_dict[display_name] = (existing_mana, existing_count + count)
         else:
             card_dict[display_name] = (mana, count)
+
 
 def parse_deck_list(deck_list: str, df_cards: pd.DataFrame | None) -> tuple[dict, dict]:
     """
