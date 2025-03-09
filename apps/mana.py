@@ -8,13 +8,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import pandas as pd
 from flask import Flask, jsonify, render_template, request
 
+from lib.cost_parser import CANONICAL_COLORS, parse_cost_string
 from lib.deck import parse_deck_list
-from lib.mana import (
-    CANONICAL_COLORS,
-    parse_cost_string,
-    run_simulation,
-    run_simulation_with_delay,
-)
+from lib.simulator import run_simulation, run_simulation_with_delay
 from lib.viz import DistributionChart, MissingColorChart, SpellDelayChart
 
 # Calculate the absolute path to the project root

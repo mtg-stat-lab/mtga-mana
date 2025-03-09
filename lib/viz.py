@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import altair as alt
 import pandas as pd
 
-from .mana import CANONICAL_COLOR_VALUES, CANONICAL_COLORS
+from .cost_parser import CANONICAL_COLOR_VALUES, CANONICAL_COLORS
 
 
 class BaseChart(ABC):
