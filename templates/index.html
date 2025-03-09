@@ -163,7 +163,7 @@
                             <div class="mb-3">
                                 <label for="simulations" class="form-label">Number of simulations</label>
                                 <input type="number" class="form-control" id="simulations" name="simulations"
-                                    value="1000" required>
+                                    value="200" required>
                             </div>
                             <div class="mb-3">
                                 <label for="seed" class="form-label">Random seed</label>
@@ -178,45 +178,8 @@
                             </div>
                             <div class="mb-3">
                                 <label for="deck_list" class="form-label">Deck List</label>
-                                <textarea id="deck_list" name="deck_list" class="form-control" rows="20">Deck
-1 Engine Rat
-1 Gastal Raider
-2 Momentum Breaker
-2 Pactdoll Terror
-1 Risky Shortcut
-1 Wreckage Wickerfolk
-1 Boommobile
-2 Burner Rocket
-1 Burnout Bashtronaut
-1 Draconautics Engineer
-1 Dynamite Diver
-1 Endrider Catalyzer
-1 Gastal Thrillroller
-2 Pedal to the Metal
-1 Thunderhead Gunner
-2 Tyrox, Saurid Tyrant
-2 Gastal Thrillseeker
-1 Bloodfell Caves
-1 Night Market
-7 Swamp
-8 Mountain
-
-Sideboard
-1 Swiftwing Assailant
-1 Trip Up
-1 Ancient Vendetta
-1 Chitin Gravestalker
-1 Spin Out
-1 Crash and Burn
-2 Gilded Ghoda
-2 Goblin Surveyor
-1 Lightning Strike
-1 Magmakin Artillerist
-1 Marauding Mako
-1 Pedal to the Metal
-1 Wreck Remover
-1 Jungle Hollow
-1 Swiftwater Cliffs</textarea>
+                                <textarea id="deck_list" name="deck_list" class="form-control"
+                                    rows="20">{% include "deck.html" %}</textarea>
                             </div>
                         </form>
                     </div>
