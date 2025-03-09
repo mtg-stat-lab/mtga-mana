@@ -1,7 +1,6 @@
 import itertools
 import random
 from collections import Counter
-from typing import Dict, List, Set, Tuple
 
 import pandas as pd
 
@@ -9,29 +8,47 @@ from .cost_parser import CANONICAL_COLORS
 from .models import Card, Deck
 
 
-def build_deck_from_dict(deck_dict: Dict[str, Tuple[str, int]], total_deck_size=40) -> Deck:
+def build_deck_from_dict(deck_dict: dict[str, tuple[str, int]], total_deck_size: int = 40) -> Deck:
     """
-    Given deck_dict: display_name -> (mana_string, quantity),
-    build a Deck object (list of Cards).
+    Given a dictionary of {card_name: (mana_string, quantity)}, build and return a Deck object.
+
+    :param deck_dict: Maps each card's display name to a (mana_string, quantity) tuple.
+    :param total_deck_size: The total deck size, including fillers if the deck has fewer
+                            actual cards.
+    :return: A Deck instance.
     """
-    cards = []
+    cards: list[Card] = []
     for display_name, (mana_str, qty) in deck_dict.items():
         for _ in range(qty):
             cards.append(Card(mana_str, display_name=display_name))
     return Deck(cards, total_deck_size)
 
 
-def _all_possible_color_combinations(mana_cards: List[Card]):
+def _all_possible_color_combinations(mana_cards: list[Card]) -> itertools.product:
     """
     For a given list of mana-producing cards, yield all possible ways
-    to pick exactly one color from each card that can produce mana.
+    to pick exactly one color from each mana-producing card.
+
+    :param mana_cards: A list of cards capable of producing mana.
+    :return: An iterator of tuples, where each tuple is one choice of colors
+             (one color per card).
     """
     return itertools.product(*(c.producible_colors for c in mana_cards))
 
 
-def _can_cast_with_sources(spell: Card, sources: List[Card], lands_playable: int) -> bool:
+def _can_cast_with_sources(spell: Card, sources: list[Card], lands_playable: int) -> bool:
     """
-    Check if `spell` can be cast with the given `sources` within `lands_playable` usage.
+    Check if `spell` can be cast given the available `sources` and the limit of
+    `lands_playable` (the total number of mana you can use this turn).
+
+    Each land (or mana-producer) can produce exactly one unit of mana per turn,
+    potentially in one of several colors if it has multiple color options.
+
+    :param spell: The card we want to check if we can cast.
+    :param sources: A list of cards that can produce mana (including lands).
+    :param lands_playable: The maximum number of sources we can use this turn.
+    :return: True if we can assemble enough colored and generic mana to cast the spell
+             False otherwise.
     """
     needed_total = spell.cost_uncolored + sum(spell.cost_colors.values())
     if needed_total > lands_playable or not sources:
@@ -43,115 +60,182 @@ def _can_cast_with_sources(spell: Card, sources: List[Card], lands_playable: int
     for subset_size in range(needed_total, max_subset_size + 1):
         for subset_indices in itertools.combinations(indices, subset_size):
             subset = [sources[i] for i in subset_indices]
-            for combo_counter in _all_possible_color_combinations(subset):
-                combo_count = Counter(combo_counter)
+            # Try every possible color combination for these sources:
+            for combo_tuple in _all_possible_color_combinations(subset):
+                combo_count = Counter(combo_tuple)
+                # Do we meet each colored pip requirement?
                 if all(combo_count[col] >= spell.cost_colors[col] for col in spell.cost_colors):
-                    # We can produce enough colored pips...
-                    color_lands_used = sum(spell.cost_colors[c] for c in spell.cost_colors)
-                    leftover = subset_size - color_lands_used
+                    # Next, ensure leftover "generic mana" covers the uncolored cost:
+                    color_pips_used = sum(spell.cost_colors[c] for c in spell.cost_colors)
+                    leftover = subset_size - color_pips_used
                     if leftover >= spell.cost_uncolored:
                         return True
     return False
 
 
-def _count_dead_spells_and_missing_colors(
-    hand: List[Card],
-    turn: int,
+def _simulate_single_run(
+    deck_dict: dict[str, tuple[str, int]],
+    total_deck_size: int,
+    initial_hand_size: int,
+    draws: int,
     on_play: bool,
-    persisted_producers: List[Card],
-    persisted_castable_spells: Set[Card],
-):
-    lands_playable = turn if not on_play else (turn + 1)
-    if lands_playable < 0:
-        lands_playable = 0
+) -> tuple[list[list[int]], list[list[dict[str, int]]], list[dict[str, int]]]:
+    """
+    Perform one run of the simulation (i.e., one set of draws across N turns).
 
-    available_sources = list(persisted_producers)
-    # Add any lands from this hand
-    available_sources.extend(c for c in hand if c and c.is_land)
+    :param deck_dict: The deck specification as {card_name: (mana_string, quantity)}.
+    :param total_deck_size: Total size of the deck.
+    :param initial_hand_size: The number of cards drawn at the start of the game.
+    :param draws: The number of turns to simulate (beyond the initial turn).
+    :param on_play: Whether we are on the play (True) or on the draw (False).
+    :return: A tuple of:
+        - dead_counts_per_turn: A list of lists of integer dead-spell counts.
+        - missing_color_tallies: A list of lists of dicts that track color shortfalls per turn.
+        - delay_records: A list of dicts, each with {"card_name": ..., "delay": ...}.
+    """
+    deck = build_deck_from_dict(deck_dict, total_deck_size)
+    deck.shuffle()
 
-    dead_count = 0
-    newly_castable: List[Card] = []
-    missing_color_counts = {c: 0 for c in CANONICAL_COLORS}
+    # The "hand" persists across turns; we add newly drawn cards each turn.
+    hand: list[Card] = []
+    # We'll store the turn number in card.draw_turn so we can compute delay later.
 
-    for c in hand:
-        if c is None or c.is_land:
-            continue
-        # Already counted as castable in a prior turn
-        if (not c.can_produce_mana) and (c in persisted_castable_spells):
-            continue
+    # For each turn, we collect how many spells are dead, plus shortfalls by color
+    dead_counts_per_turn: list[list[int]] = [[] for _ in range(draws)]
+    missing_color_tallies: list[list[dict[str, int]]] = [[] for _ in range(draws)]
+    # For each card that becomes castable, we track how many turns it spent in hand
+    delay_records: list[dict[str, int]] = []
 
-        total_cost = c.cost_uncolored + sum(c.cost_colors.values())
-        if total_cost > lands_playable:
-            # Not enough total mana
-            dead_count += 1
-            continue
+    # Draw initial hand
+    for _ in range(initial_hand_size):
+        if deck.cards:
+            card = deck.cards.pop(0)
+            if card is not None:
+                card.draw_turn = 1
+            hand.append(card)
 
-        if _can_cast_with_sources(c, available_sources, lands_playable):
-            if c.can_produce_mana and (not c.is_land):
-                newly_castable.append(c)
+    # Persist objects that remain after being cast (e.g. artifact producers)
+    persisted_mana_producers: list[Card] = []
+    persisted_castable_spells: set[Card] = set()
+
+    # Simulate exactly `draws` turns
+    for turn in range(1, draws + 1):
+        # If turn=1 and we're on the draw, draw an extra card.
+        if turn == 1 and not on_play:
+            if deck.cards:
+                card = deck.cards.pop(0)
+                if card is not None:
+                    card.draw_turn = turn
+                hand.append(card)
+        elif turn > 1:
+            # Turn >=2 => always draw 1 card
+            if deck.cards:
+                card = deck.cards.pop(0)
+                if card is not None:
+                    card.draw_turn = turn
+                hand.append(card)
+
+        # If on the play, you effectively have turn+1 "land plays" (sources of mana),
+        # otherwise just turn
+        lands_playable = (turn + 1) if on_play else turn
+        if lands_playable < 0:
+            lands_playable = 0
+
+        available_sources = persisted_mana_producers + [c for c in hand if c and c.is_land]
+
+        dead_count = 0
+        missing_color_counts = {col: 0 for col in CANONICAL_COLORS}
+
+        for c in hand:
+            if c is None or c.is_land:
+                continue
+            # If it's a normal spell and we've already marked it as castable, skip checking
+            if not c.can_produce_mana and c in persisted_castable_spells:
+                continue
+
+            total_cost = c.cost_uncolored + sum(c.cost_colors.values())
+            if total_cost > lands_playable:
+                # Not enough total mana to cast
+                dead_count += 1
+                continue
+
+            if _can_cast_with_sources(c, available_sources, lands_playable):
+                # The spell can now be cast for the first time
+                delay = turn - getattr(c, "draw_turn", turn)
+                delay_records.append({"card_name": c.display_name, "delay": delay})
+
+                if c.can_produce_mana and not c.is_land:
+                    persisted_mana_producers.append(c)
+                else:
+                    persisted_castable_spells.add(c)
             else:
-                persisted_castable_spells.add(c)
-        else:
-            dead_count += 1
-            # Tally color shortfalls
-            source_color_counts = Counter()
-            for src in available_sources:
-                for col in src.producible_colors:
-                    source_color_counts[col] += 1
-            for col in c.cost_colors:
-                needed_pips = c.cost_colors[col]
-                if source_color_counts[col] < needed_pips:
-                    missing_color_counts[col] += 1
+                # Spell is dead for this turn
+                dead_count += 1
 
-    return dead_count, newly_castable, missing_color_counts
+                # Tally color shortfalls
+                source_color_counts = Counter()
+                for src in available_sources:
+                    for col in src.producible_colors:
+                        source_color_counts[col] += 1
+                for col in c.cost_colors:
+                    needed_pips = c.cost_colors[col]
+                    if source_color_counts[col] < needed_pips:
+                        missing_color_counts[col] += 1
+
+        dead_counts_per_turn[turn - 1].append(dead_count)
+        missing_color_tallies[turn - 1].append(missing_color_counts)
+
+    return dead_counts_per_turn, missing_color_tallies, delay_records
 
 
-def run_simulation(
-    deck_dict: Dict[str, Tuple[str, int]],
-    total_deck_size: int = 40,
-    initial_hand_size: int = 7,
-    draws: int = 10,
-    simulations: int = 100_000,
-    seed: int = None,
-    on_play: bool = True,
-):
-    if seed is not None:
-        random.seed(seed)
+def _build_summary_tables(
+    dead_counts_runs: list[list[list[int]]],
+    missing_color_runs: list[list[list[dict[str, int]]]],
+    delay_records_all: list[list[dict[str, int]]],
+    draws: int,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Aggregate results across all runs into three DataFrames:
+      1) df_summary: aggregated stats per turn (including p_dead, average missing colors).
+      2) df_distribution: distribution of "dead spells" counts per turn.
+      3) df_delay: rows of (card_name, delay).
 
-    dead_counts_per_turn = [[] for _ in range(draws)]
-    missing_color_tallies = [[] for _ in range(draws)]
+    :param dead_counts_runs: A list of length `simulations`, where each element is
+                             a list of length `draws` with dead-spell counts.
+    :param missing_color_runs: Same shape as dead_counts_runs, but each item is
+                               a dict of color shortfalls.
+    :param delay_records_all: A list of lists, each sub-list is the delay_records for one run.
+    :param draws: The number of turns simulated.
+    :return: (df_summary, df_distribution, df_delay).
+    """
 
-    for _ in range(simulations):
-        deck = build_deck_from_dict(deck_dict, total_deck_size)
-        deck.shuffle()
-
-        persisted_mana_producers: List[Card] = []
-        persisted_castable_spells: Set[Card] = set()
-
-        for turn in range(1, draws + 1):
-            hand_size = (initial_hand_size + (turn - 1)) if on_play else (initial_hand_size + turn)
-            hand = deck.draw_top_n(hand_size)
-
-            dead_count, newly_castable, missing_colors = _count_dead_spells_and_missing_colors(
-                hand, turn, on_play, persisted_mana_producers, persisted_castable_spells
-            )
-            dead_counts_per_turn[turn - 1].append(dead_count)
-            missing_color_tallies[turn - 1].append(missing_colors)
-            persisted_mana_producers.extend(newly_castable)
-
-    # Build summary DataFrame
+    # 1) Build summary stats (p_dead and avg_missing) per turn
     rows_summary = []
     for turn_idx in range(draws):
-        turn_dead_list = dead_counts_per_turn[turn_idx]
-        total_sims = float(len(turn_dead_list))
-        count_ge1 = sum(1 for d in turn_dead_list if d >= 1)
-        p_dead = count_ge1 / total_sims
+        # Flatten across runs
+        turn_dead_lists = [run[turn_idx] for run in dead_counts_runs]  # each run is a list of ints
+        all_dead_values = []
+        for dlist in turn_dead_lists:
+            all_dead_values.extend(dlist)  # but we actually have only one value per run anyway
+
+        total_sims = float(len(all_dead_values))
+        count_ge1 = sum(1 for d in all_dead_values if d >= 1)
+        p_dead = count_ge1 / total_sims if total_sims > 0 else 0
+
+        # Combine color tallies
+        turn_color_dicts = [run[turn_idx] for run in missing_color_runs]
+        all_color_counts = []
+        for mclist in turn_color_dicts:
+            all_color_counts.extend(mclist)
 
         color_sums = Counter()
-        for sim_dict in missing_color_tallies[turn_idx]:
-            color_sums.update(sim_dict)
+        for cdict in all_color_counts:
+            color_sums.update(cdict)
 
-        avg_missing = {col: color_sums[col] / total_sims for col in CANONICAL_COLORS}
+        avg_missing = {
+            col: (color_sums[col] / total_sims) if total_sims > 0 else 0 for col in CANONICAL_COLORS
+        }
+
         row = {
             "turn": turn_idx + 1,
             "turn_label": str(turn_idx + 1),
@@ -163,10 +247,18 @@ def run_simulation(
 
     df_summary = pd.DataFrame(rows_summary)
 
-    # Build distribution DataFrame
+    # 2) Distribution of "dead spells" counts per turn
+    # We combine all runs into a single distribution
     distribution_rows = []
     for turn_idx in range(draws):
-        freq_counter = Counter(dead_counts_per_turn[turn_idx])
+        # For each run, we have exactly one dead_count for that turn -> a list of lists
+        # But we only used dead_counts_per_turn[turn_idx][0] in the original code
+        # so each sub-list is length=1. We'll handle it in a more general way anyway.
+        freq_counter = Counter()
+        for run in dead_counts_runs:
+            for dead_val in run[turn_idx]:
+                freq_counter[dead_val] += 1
+
         for dead_val, freq in freq_counter.items():
             distribution_rows.append(
                 {
@@ -176,67 +268,70 @@ def run_simulation(
                     "frequency": freq,
                 }
             )
+
     df_distribution = pd.DataFrame(distribution_rows)
 
-    return df_summary, df_distribution
+    # 3) Delay DataFrame (flat list of all records from all runs)
+    all_delay_records = []
+    for run_delays in delay_records_all:
+        all_delay_records.extend(run_delays)
+
+    df_delay = pd.DataFrame(all_delay_records)
+
+    return df_summary, df_distribution, df_delay
 
 
-def run_simulation_with_delay(
-    deck_dict: Dict[str, Tuple[str, int]],
+def run_simulation_all(
+    deck_dict: dict[str, tuple[str, int]],
     total_deck_size: int = 40,
     initial_hand_size: int = 7,
     draws: int = 10,
     simulations: int = 100_000,
-    seed: int = None,
+    seed: int | None = None,
     on_play: bool = True,
-):
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
-    Records how many turns each non-land spell remains uncastable
-    from the time it enters your hand.
+    A unified simulation that accomplishes two major goals:
+      1) Dead-spell counts & missing-color tallies each turn.
+      2) Spell delay tracking (how many turns each spell spends uncastable).
+
+    Returns three DataFrames:
+      - df_summary: aggregated stats per turn (p_dead and average missing color).
+      - df_distribution: distribution of dead-spell counts per turn (e.g., 0,1,2,...).
+      - df_delay: (card_name, delay) for each card that eventually became castable,
+                  representing how many turns it spent in hand before first becoming castable.
+
+    :param deck_dict: A dict mapping card_name -> (mana_string, quantity).
+    :param total_deck_size: The total number of cards in the deck (including filler if needed).
+    :param initial_hand_size: How many cards are drawn in your opening hand.
+    :param draws: Number of turns to simulate.
+    :param simulations: How many times to run the entire simulation.
+    :param seed: Optional RNG seed for reproducibility.
+    :param on_play: If True, simulates "on the play"; if False, "on the draw".
+    :return: (df_summary, df_distribution, df_delay)
     """
     if seed is not None:
         random.seed(seed)
 
-    delay_records = []
+    # We store the per-run results in lists, then combine them at the end.
+    dead_counts_runs: list[list[list[int]]] = []
+    missing_color_runs: list[list[list[dict[str, int]]]] = []
+    delay_records_all: list[list[dict[str, int]]] = []
 
     for _ in range(simulations):
-        deck = build_deck_from_dict(deck_dict, total_deck_size)
-        deck.shuffle()
+        dead_counts_per_turn, missing_color_tallies, delay_records = _simulate_single_run(
+            deck_dict=deck_dict,
+            total_deck_size=total_deck_size,
+            initial_hand_size=initial_hand_size,
+            draws=draws,
+            on_play=on_play,
+        )
+        dead_counts_runs.append(dead_counts_per_turn)
+        missing_color_runs.append(missing_color_tallies)
+        delay_records_all.append(delay_records)
 
-        # The "hand" is persistent across turns
-        hand = []
-        # Opening hand
-        for _ in range(initial_hand_size):
-            if deck.cards:
-                card = deck.cards.pop(0)
-                if card and not card.is_land:
-                    card.draw_turn = 1
-                hand.append(card)
-
-        persisted_mana_producers = []
-
-        for turn in range(1, draws + 1):
-            if turn > 1 and deck.cards:
-                card = deck.cards.pop(0)
-                if card and not card.is_land:
-                    card.draw_turn = turn
-                hand.append(card)
-
-            lands_playable = turn if not on_play else (turn + 1)
-
-            # Attempt to cast any newly-castable spells
-            available_sources = persisted_mana_producers + [c for c in hand if c and c.is_land]
-            # Make a copy so we can remove from hand when cast
-            for card in hand.copy():
-                if not card or card.is_land:
-                    continue
-                if _can_cast_with_sources(card, available_sources, lands_playable):
-                    # The delay is how many turns it spent in your hand
-                    # from draw_turn until 'turn'
-                    delay = turn - getattr(card, "draw_turn", turn)
-                    delay_records.append({"card_name": card.display_name, "delay": delay})
-                    if card.can_produce_mana and (not card.is_land):
-                        persisted_mana_producers.append(card)
-                    hand.remove(card)
-
-    return pd.DataFrame(delay_records)
+    # Build and return final DataFrames summarizing all runs
+    df_summary, df_distribution, df_delay = _build_summary_tables(
+        dead_counts_runs, missing_color_runs, delay_records_all, draws
+    )
+    return df_summary, df_distribution, df_delay
