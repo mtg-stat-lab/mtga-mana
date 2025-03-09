@@ -56,6 +56,7 @@ def simulate():
             row = {"card_name": card_name, "generic": uncolored}
             for c in CANONICAL_COLORS:
                 row[c] = color_costs.get(c, 0)
+            row["count"] = count
             cost_rows.append(row)
 
         df_cost = pd.DataFrame(cost_rows)
