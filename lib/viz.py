@@ -185,7 +185,7 @@ class SpellDelayChart(BaseChart):
                 y=alt.Y("card_name:N", title=None, sort=ordering, axis=None),
                 size=alt.Size(
                     "pct:Q",
-                    title="% of times drawn",
+                    title="% of times dead",
                     # Adjust the range to taste so big percentages are more visible
                     scale=alt.Scale(range=[10, 1000]),
                 ),
