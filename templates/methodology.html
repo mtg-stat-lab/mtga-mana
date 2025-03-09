@@ -36,6 +36,19 @@
         castable thereafter.</li>
 </ul>
 
+<h3>Interpreting the Key Statistics</h3>
+<ul>
+    <li>
+        <strong>% of Turns with 0 Dead Spells:</strong> This statistic shows the proportion of simulated turns in which
+        every spell drawn so far could be cast with the available mana and mana-producing spells castable on prior
+        turns.
+    </li>
+    <li>
+        <strong>Expected Dead Spells per Turn:</strong> This is the average number of spells per turn that are “dead”
+        (i.e. not castable).
+    </li>
+</ul>
+
 <h3>Interpreting the Charts</h3>
 <ul>
     <li><strong>Distribution of Dead Spells:</strong> Shows how frequently each number of dead spells (1,2,3,...) occurs
@@ -46,9 +59,24 @@
         castable.</li>
 </ul>
 
-<h3>Disclaimer on Simplification</h3>
+<h3>Simplification of Real MTG Games</h3>
 <p>
-    This simulator focuses primarily on mana availability. It does not capture the complexity of real gameplay, where
-    additional interactions and effects can alter the number of available cards and resources. Think of these results
-    as a rough guideline for how often you might be unable to cast your spells due to mana constraints.
+    This simulation focuses solely on mana availability and the ability to cast spells. It does not capture many of the
+    complexities of real Magic. For example:
+</p>
+<ul>
+    <li>It does not consider card abilities such as card draw, cycling, tutoring, graveyard synergies, exhaust
+        abilities, etc.</li>
+    <li>It does not account for the Arena Bo1 hand smoother, or your mulligan choices</li>
+    <li>We aren't simulating anything related to gameplay (this is just about greedy use of mana).</li>
+    <li>Any spell that could be used to produce mana in the future is cast as soon as it is playable.</li>
+    <li>A card is considered castable if it would have been possible to cast it given the mana sources you have, even if
+        you have other competing uses for that mana.</li>
+    <li>It doesn't consider the value of holding onto a card for a future turn.</li>
+    <li>It is able to make perfect decisions about what lands to have played in prior turns in order to maximize the
+        ability to cast any given spell on this turn.</li>
+    <li>We aren't keeping track of any affinity cost reductions.</li>
+</ul>
+<p>
+    So, in general, think about this is the most <i>optimistic</i> scenario for spending your mana.</li>
 </p>
