@@ -96,14 +96,9 @@ def _simulate_single_run(
     deck = build_deck_from_dict(deck_dict, total_deck_size)
     deck.shuffle()
 
-    # The "hand" persists across turns; we add newly drawn cards each turn.
     hand: list[Card] = []
-    # We'll store the turn number in card.draw_turn so we can compute delay later.
-
-    # For each turn, we collect how many spells are dead, plus shortfalls by color
     dead_counts_per_turn: list[list[int]] = [[] for _ in range(draws)]
     missing_color_tallies: list[list[dict[str, int]]] = [[] for _ in range(draws)]
-    # For each card that becomes castable, we track how many turns it spent in hand
     delay_records: list[dict[str, int]] = []
 
     # Draw initial hand
@@ -114,29 +109,26 @@ def _simulate_single_run(
                 card.draw_turn = 1
             hand.append(card)
 
-    # Persist objects that remain after being cast (e.g. artifact producers)
     persisted_mana_producers: list[Card] = []
     persisted_castable_spells: set[Card] = set()
 
-    # Simulate exactly `draws` turns
     for turn in range(1, draws + 1):
-        # If turn=1 and we're on the draw, draw an extra card.
+        # Extra draw if turn=1 and on the draw
         if turn == 1 and not on_play:
             if deck.cards:
                 card = deck.cards.pop(0)
                 if card is not None:
                     card.draw_turn = turn
                 hand.append(card)
+        # Otherwise, from turn=2 onward, always draw one
         elif turn > 1:
-            # Turn >=2 => always draw 1 card
             if deck.cards:
                 card = deck.cards.pop(0)
                 if card is not None:
                     card.draw_turn = turn
                 hand.append(card)
 
-        # If on the play, you effectively have turn+1 "land plays" (sources of mana),
-        # otherwise just turn
+        # Limit on how many lands (or sources) can be used this turn
         lands_playable = (turn + 1) if on_play else turn
         if lands_playable < 0:
             lands_playable = 0
@@ -147,27 +139,29 @@ def _simulate_single_run(
         missing_color_counts = {col: 0 for col in CANONICAL_COLORS}
 
         for c in hand:
-            if c is None or c.is_land:
+            if c is None:
                 continue
-            # If it's a normal spell and we've already marked it as castable, skip checking
-            if not c.can_produce_mana and c in persisted_castable_spells:
+
+            # ————— NEW LOGIC: skip if already castable or in persisted mana list —————
+            if c in persisted_castable_spells or c in persisted_mana_producers or c.is_land:
+                # Already cast or is a land, so definitely not “dead” now
                 continue
 
             total_cost = c.cost_uncolored + sum(c.cost_colors.values())
             if total_cost > lands_playable:
-                # Not enough total mana to cast
+                # Not enough total mana
                 dead_count += 1
                 continue
 
             if _can_cast_with_sources(c, available_sources, lands_playable):
-                # The spell can now be cast for the first time
+                # The spell becomes castable this turn
                 delay = turn - getattr(c, "draw_turn", turn)
                 delay_records.append({"card_name": c.display_name, "delay": delay})
 
-                if c.can_produce_mana and not c.is_land:
+                # If it produces mana, keep track of it in both sets
+                if c.can_produce_mana:
                     persisted_mana_producers.append(c)
-                else:
-                    persisted_castable_spells.add(c)
+                persisted_castable_spells.add(c)
             else:
                 # Spell is dead for this turn
                 dead_count += 1
@@ -184,6 +178,12 @@ def _simulate_single_run(
 
         dead_counts_per_turn[turn - 1].append(dead_count)
         missing_color_tallies[turn - 1].append(missing_color_counts)
+
+    # After the final turn:
+    for c in hand:
+        if c is not None and not c.is_land and c not in persisted_castable_spells:
+            # Still not castable on the 10th turn
+            delay_records.append({"card_name": c.display_name, "delay": draws})
 
     return dead_counts_per_turn, missing_color_tallies, delay_records
 

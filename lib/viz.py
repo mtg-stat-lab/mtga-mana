@@ -161,7 +161,13 @@ class SpellDelayChart(BaseChart):
             alt.Chart(aggregated)
             .mark_circle()
             .encode(
-                x=alt.X("delay:Q", title="Turns Dead in Hand"),
+                x=alt.X(
+                    "delay:Q",
+                    title="Turns Dead in Hand",
+                    axis=alt.Axis(
+                        labelExpr=f"datum.value === {max_delay} ? '{max_delay}+' : datum.value"
+                    ),
+                ),
                 y=alt.Y("card_name:N", title=None, sort=ordering, axis=None),
                 size=alt.Size("count:Q", title="Frequency", scale=alt.Scale(range=[10, 1000])),
                 tooltip=["card_name:N", "delay:Q", "count:Q"],
