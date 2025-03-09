@@ -1,39 +1,41 @@
 from __future__ import annotations
-import random
+
 import itertools
+import random
 import re
 from collections import Counter
+
 import pandas as pd
 
-from lib.deck import parse_deck_list
+CANONICAL_COLORS: list[str] = ["W", "U", "B", "R", "G"]
+CANONICAL_COLOR_VALUES: list[str] = ["grey", "blue", "black", "red", "green"]
 
-CANONICAL_COLORS: list[str] = ['W', 'U', 'B', 'R', 'G']
-CANONICAL_COLOR_VALUES: list[str] = ['grey', 'blue', 'black', 'red', 'green']
 
 def parse_cost_string(cost_str: str) -> tuple[int, Counter[str]]:
     """
     Parse a cost string such as '3*U2W' into (uncolored, color_costs).
     Example:
       '3*U2W' -> (3, {'U':1, 'W':2})
-    """    
-    pattern = r'(\d*\*|\d*[WUBRG])'
+    """
+    pattern = r"(\d*\*|\d*[WUBRG])"
     matches = re.findall(pattern, cost_str)
     uncolored = 0
     color_costs: Counter[str] = Counter()
     for m in matches:
-        digits_str = ''
+        digits_str = ""
         for ch in m:
             if ch.isdigit():
                 digits_str += ch
             else:
                 break
         num = int(digits_str) if digits_str else 1
-        symbol = m[len(digits_str):]
-        if symbol == '*':
+        symbol = m[len(digits_str) :]
+        if symbol == "*":
             uncolored += num
         else:
             color_costs[symbol] += num
     return uncolored, color_costs
+
 
 class Card:
     """
@@ -49,11 +51,12 @@ class Card:
         cost_uncolored: Generic mana required.
         cost_colors: Counts of colored mana required.
         producible_colors: Which color(s) this card can produce.
-    """    
+    """
+
     def __init__(self, card_str: str, display_name: str | None = None) -> None:
         self.card_str: str = card_str
         self.display_name: str = display_name if display_name is not None else card_str
-        self.is_land: bool = card_str.startswith('>')
+        self.is_land: bool = card_str.startswith(">")
         self.can_produce_mana: bool = False
         self.cost_uncolored: int = 0
         self.cost_colors: Counter[str] = Counter()
@@ -65,8 +68,8 @@ class Card:
             self.can_produce_mana = True
             self.producible_colors = set(produce_part)
         else:
-            if '>' in card_str:
-                cost_part, produce_part = card_str.split('>', 1)
+            if ">" in card_str:
+                cost_part, produce_part = card_str.split(">", 1)
                 self.can_produce_mana = True
                 self.producible_colors = set(produce_part)
             else:
@@ -78,11 +81,13 @@ class Card:
     def __repr__(self) -> str:
         return f"Card({self.display_name}, {self.card_str})"
 
+
 class Deck:
     """
     Deck of cards. Some positions may be None if the deck_dict
     has fewer unique cards than total_size.
-    """    
+    """
+
     def __init__(self, cards: list[Card], total_deck_size: int = 40) -> None:
         self.cards: list[Card | None] = cards
         self.total_deck_size: int = total_deck_size
@@ -102,19 +107,24 @@ class Deck:
     def __repr__(self) -> str:
         return f"Deck(size={self.total_deck_size}, actual_list_len={len(self.cards)})"
 
+
 def build_deck_from_dict(deck_dict: dict[str, tuple[str, int]], total_deck_size: int = 40) -> Deck:
     """
     Build a Deck from a dictionary mapping card display name -> (mana string, quantity).
-    """    
+    """
     card_objs: list[Card] = []
     for display_name, (mana, qty) in deck_dict.items():
         for _ in range(qty):
             card_objs.append(Card(mana, display_name=display_name))
     return Deck(card_objs, total_deck_size)
 
-def _all_possible_color_combinations(mana_cards: list[Card]) -> itertools.Generator[Counter[str], None, None]:
+
+def _all_possible_color_combinations(
+    mana_cards: list[Card],
+) -> itertools.Generator[Counter[str], None, None]:
     for combo in itertools.product(*(c.producible_colors for c in mana_cards)):
         yield Counter(combo)
+
 
 def _can_cast_with_sources(spell: Card, sources: list[Card], lands_playable: int) -> bool:
     needed_total = spell.cost_uncolored + sum(spell.cost_colors.values())
@@ -128,19 +138,22 @@ def _can_cast_with_sources(spell: Card, sources: list[Card], lands_playable: int
         for subset_indices in itertools.combinations(indices, subset_size):
             subset = [sources[i] for i in subset_indices]
             for combo_counter in _all_possible_color_combinations(subset):
-                if all(combo_counter[color] >= spell.cost_colors[color] for color in spell.cost_colors):
+                if all(
+                    combo_counter[color] >= spell.cost_colors[color] for color in spell.cost_colors
+                ):
                     color_lands_used = sum(spell.cost_colors[c] for c in spell.cost_colors)
                     leftover = subset_size - color_lands_used
                     if leftover >= spell.cost_uncolored:
                         return True
     return False
 
+
 def _count_dead_spells_and_missing_colors(
     hand: list[Card | None],
     turn: int,
     on_play: bool,
     persisted_producers: list[Card],
-    persisted_castable_spells: set[Card]
+    persisted_castable_spells: set[Card],
 ) -> tuple[int, list[Card], dict[str, int]]:
     lands_playable = turn if not on_play else (turn + 1)
     if lands_playable < 0:
@@ -184,6 +197,7 @@ def _count_dead_spells_and_missing_colors(
 
     return dead_count, newly_castable, missing_color_counts
 
+
 def run_simulation(
     deck_dict: dict[str, tuple[str, int]],
     total_deck_size: int = 40,
@@ -191,7 +205,7 @@ def run_simulation(
     draws: int = 10,
     simulations: int = 100_000,
     seed: int | None = None,
-    on_play: bool = True
+    on_play: bool = True,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     if seed is not None:
         random.seed(seed)
@@ -215,11 +229,7 @@ def run_simulation(
             hand = deck.draw_top_n(hand_size)
 
             dead_count, newly_castable, missing_colors = _count_dead_spells_and_missing_colors(
-                hand,
-                turn,
-                on_play,
-                persisted_mana_producers,
-                persisted_castable_spells
+                hand, turn, on_play, persisted_mana_producers, persisted_castable_spells
             )
             dead_counts_per_turn[turn - 1].append(dead_count)
             missing_color_tallies[turn - 1].append(missing_colors)
@@ -252,15 +262,13 @@ def run_simulation(
     for turn in range(1, draws + 1):
         freq_counter = Counter(dead_counts_per_turn[turn - 1])
         for dead_val, freq in freq_counter.items():
-            distribution_rows.append({
-                "turn": turn,
-                "turn_label": str(turn),
-                "dead_spells": dead_val,
-                "frequency": freq
-            })
+            distribution_rows.append(
+                {"turn": turn, "turn_label": str(turn), "dead_spells": dead_val, "frequency": freq}
+            )
 
     df_distribution = pd.DataFrame(distribution_rows)
     return df_summary, df_distribution
+
 
 def run_simulation_with_delay(
     deck_dict: dict[str, tuple[str, int]],
@@ -269,16 +277,16 @@ def run_simulation_with_delay(
     draws: int = 10,
     simulations: int = 100_000,
     seed: int | None = None,
-    on_play: bool = True
+    on_play: bool = True,
 ) -> pd.DataFrame:
     """
     Simulate a persistent hand and record, for each non-land spell,
     how many turns it sat in hand (i.e. delay between draw and first being castable).
     Lands are skipped because they are always castable on turn 1.
-    """    
+    """
     if seed is not None:
         random.seed(seed)
-    
+
     delay_records = []
     for _ in range(simulations):
         deck = build_deck_from_dict(deck_dict, total_deck_size)
@@ -304,19 +312,18 @@ def run_simulation_with_delay(
                     card.draw_turn = turn
                 hand.append(card)
 
-            available_sources = persisted_mana_producers + [c for c in hand if c is not None and c.is_land]
+            available_sources = persisted_mana_producers + [
+                c for c in hand if c is not None and c.is_land
+            ]
             lands_playable = turn if not on_play else (turn + 1)
 
             # Process only non-land cards for delay tracking
             for card in hand.copy():
                 if card is None or card.is_land:
-                    continue # Skip lands entirely
+                    continue  # Skip lands entirely
                 if _can_cast_with_sources(card, available_sources, lands_playable):
-                    delay = turn - getattr(card, 'draw_turn', turn)
-                    delay_records.append({
-                        'card_name': card.display_name,
-                        'delay': delay
-                    })
+                    delay = turn - getattr(card, "draw_turn", turn)
+                    delay_records.append({"card_name": card.display_name, "delay": delay})
                     if card.can_produce_mana and (not card.is_land):
                         persisted_mana_producers.append(card)
                     hand.remove(card)
