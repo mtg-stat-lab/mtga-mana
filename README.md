@@ -43,6 +43,12 @@ is maintained in a google sheet [here](https://docs.google.com/spreadsheets/d/1N
 
 ### TODO
 
+* Move expected dead spells per color to be the first summary card
+* Add expected turns to cast first spell
+
+* Add new plot by color of expected dead spells as a horizontal bard chart
+
+* Account for hand smoother and some mulligan logic?
 
 From the latest change:
 
