@@ -1,48 +1,75 @@
 # mtga-mana
 Mana calculator
 
-## Instructions
-
 ### Running the app on Render
 
 * In Render dashboard [here](https://dashboard.render.com/web/srv-cv430uggph6c73aanba0).
 * Deployed URL is [https://mtg-got-pips.onrender.com](https://mtg-got-pips.onrender.com).
 
-### Running the app locally
+# Getting Started with the Repository
 
-Create the virtual environment
+Follow these steps to set up your development environment locally.
 
-``` bash
-python3 -m venv venv
+## 1. Clone the Repository
+
+Open your terminal and run:
+
+```bash
+git clone https://github.com/your-username/your-repo.git
+cd your-repo
 ```
 
-Activate the virtual env
+## 2. Create and Activate a Virtual Environment
 
-``` bash
+### On macOS/Linux:
+```bash
+python3 -m venv venv
 source venv/bin/activate
 ```
 
-Install dependencies
+### On Windows:
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
 
-``` bash
+## 3. Install Dependencies
+
+### Production Dependencies
+Install the runtime dependencies:
+```bash
 pip install -r requirements.txt
 ```
 
-Run the app
-
-``` bash
-python apps/mana.py
+### Development Dependencies
+Install the development tools (linters, formatters, etc.) from `dev-requirements.txt`:
+```bash
+pip install -r dev-requirements.txt
 ```
 
-Go to [this URL](http://127.0.0.1:5001/) to see the app!
+## 4. Set Up Pre-commit Hooks
 
-### Card dataHistory
+This repository uses pre-commit to run linting and formatting checks automatically before commits.
+
+Install the pre-commit hooks by running:
+```bash
+pre-commit install
+```
+
+## 5. Run the Application Locally
+
+Start the app (by default on port 5001):
+```bash
+python apps/mana.py
+```
+Then, open your browser and navigate to [http://localhost:5001](http://localhost:5001).
+
+# Card Data
 
 This app uses manually entered card data for spell casting / mana production costs that
 is maintained in a google sheet [here](https://docs.google.com/spreadsheets/d/1NzkW7K1MEjIbj91Wgb5BYoGfQQgyAi6Kc_ONQymDrb8/edit?usp=sharing).
 
-### TODO
-
+# TODO
 
 From the latest change:
 
