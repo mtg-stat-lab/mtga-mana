@@ -3,14 +3,20 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from flask import Flask, render_template, request, jsonify
-import json
-import numpy as np
 import pandas as pd
-import random
 
-from lib.mana import run_simulation, run_simulation_with_delay, CANONICAL_COLORS, parse_cost_string
-from lib.viz import DistributionChart, BestColorChart, SpellDelayChart
-from lib.deck import parse_deck_list  # using deck list parser
+from lib.mana import (
+    run_simulation,
+    run_simulation_with_delay,
+    CANONICAL_COLORS,
+    parse_cost_string
+)
+from lib.viz import (
+    DistributionChart,
+    SpellDelayChart,
+    MissingColorChart
+)
+from lib.deck import parse_deck_list
 
 # Calculate the absolute path to the project root
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -70,7 +76,7 @@ def simulate():
 
         # Create chart specs.
         dist_chart_spec = DistributionChart(df_distribution).render_spec()
-        best_color_chart_spec = BestColorChart(df_summary).render_spec()
+        missing_color_chart_spec = MissingColorChart(df_summary).render_spec()
 
         # Calculate additional statistics.
         total_turns = (draws + 1) * simulations
@@ -82,33 +88,9 @@ def simulate():
         total_dead_spells = df_distribution['weighted_dead'].sum()
         expected_dead_per_turn = total_dead_spells / total_turns if total_turns > 0 else 0
 
-        # Determine "most desired" pip color.
-        color_fractions = {}
-        for c in CANONICAL_COLORS:
-            col_name = f"pct_optimal_{c}"
-            frac_sum = df_summary[col_name].sum() if col_name in df_summary.columns else 0
-            color_fractions[c] = frac_sum / (draws + 1) if draws > 0 else 0
-        most_desired_color = max(color_fractions, key=color_fractions.get) if color_fractions else "N/A"
-
-        # Determine "least desired" pip color (among colors used in deck, if any).
-        used_spell_colors = set()
-        for card_str in deck_dict.keys():
-            if card_str.startswith('>'):
-                continue
-            for ch in card_str:
-                if ch in CANONICAL_COLORS:
-                    used_spell_colors.add(ch)
-
-        if used_spell_colors:
-            least_desired_color = min(used_spell_colors, key=lambda c: color_fractions.get(c, 0))
-        else:
-            least_desired_color = "N/A"
-
         stats = {
             "pct_turns_zero_dead": pct_turns_zero_dead,
-            "expected_dead_per_turn": expected_dead_per_turn,
-            "most_desired_color": most_desired_color,
-            "least_desired_color": least_desired_color
+            "expected_dead_per_turn": expected_dead_per_turn
         }
 
         # Run the delay simulation to track when spells become castable.
@@ -126,7 +108,7 @@ def simulate():
 
         return jsonify({
             'dist_chart_spec': dist_chart_spec,
-            'best_color_chart_spec': best_color_chart_spec,
+            'missing_color_chart_spec': missing_color_chart_spec,
             'spell_delay_chart_spec': spell_delay_chart_spec,
             'stats': stats
         })

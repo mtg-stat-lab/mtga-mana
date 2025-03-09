@@ -1,14 +1,13 @@
 <h3>Getting started</h3>
 <p>
-    Fill in the simulation settings on the left (deck size, initial hand size, number of draw steps, number of
-    simulations, and random seed). Then, paste your deck list in the provided text area. The deck list should include
-    a "Deck" section (which will be simulated) and a "Sideboard" section (which will be ignored).
-    Finally, click “Run simulation” to start the simulation and view the results and charts on the right.
+    Fill in the simulation settings on the left. Then, paste your deck list in the provided text area. The deck list
+    should include a "Deck" section (which will be simulated) and a "Sideboard" section (which will be ignored).
+    Finally, click “Run simulation” to see the results.
 </p>
 
 <p>
     To get your deck list from 17lands, click on the "Deck Export" button from the deck view and
-    select "Copy as plain text" and then paste into this app accordingly.
+    select "Copy as plain text" and then paste it here.
 </p>
 
 <h3>How the simulation works</h3>
@@ -16,68 +15,48 @@
     The simulation runs many iterations of a simplified game scenario. For each simulation:
 </p>
 <ol>
-    <li>Your deck list is parsed and each card name is converted to its mana requirements and production capabilities.
+    <li>Your deck list is parsed and each card is converted to its mana requirements and production capabilities.</li>
+    <li>A deck is built, shuffled, and cards are drawn turn by turn (depending on whether you are on the play or draw).
     </li>
-    <li>For each simulation run, a deck is built from the parsed deck list and shuffled.</li>
-    <li>For each turn in the simulation, the hand size increases (depending on “on play” or “on draw” rules), and the
-        simulation
-        checks which spells are “dead” (i.e. not castable) based on mana producing cards (lands or cards that tap for
-        mana) that could have been played this turn or on previous turns.</li>
-    <li>The app also tests single-color land replacements to see which color would best reduce dead spells on that turn.
-    </li>
-    <li>Results are aggregated across simulations and displayed as summary statistics and charts.</li>
+    <li>Each turn, the simulation determines which spells are castable based on the available sources. Any spells that
+        cannot be cast are considered “dead” for that turn.</li>
+    <li>If a spell is within the total mana available but missing certain colored sources, it is counted as “dead
+        because of missing color pips.”</li>
+    <li>These data are aggregated over many simulations and summarized in charts and statistics.</li>
 </ol>
 
-<h3>Key Assumptions in the Simulation</h3>
+<h3>Key Assumptions</h3>
 <ul>
-    <li>
-        <strong>Fixed Turn Structure:</strong> The simulation assumes a fixed number of turns and a set increase in hand
-        size (depending on “on play” or “on draw” rules).
-    </li>
-    <li>
-        <strong>One Mana per Land:</strong> Each land or mana-producing source is assumed to provide exactly one mana
-        per turn.
-    </li>
-    <li>
-        <strong>Simplified Casting:</strong> The simulation uses a basic algorithm to determine if a spell can be cast,
-        checking combinations of available mana sources without simulating more complex in‐game interactions.
-    </li>
-    <li>
-        <strong>No Re-check for Known Castables:</strong> Once a normal spell is deemed castable in a previous turn, it
-        is assumed to remain castable in later turns without further checks.
-    </li>
+    <li><strong>Fixed Turn Structure:</strong> We simulate a fixed number of turns with a fixed draw pattern.</li>
+    <li><strong>One Mana per Land or Source:</strong> Each land or producing card provides exactly one mana, chosen from
+        among its producible colors.</li>
+    <li><strong>Simplified Casting:</strong> We assume you can access the maximum potential of your lands each turn for
+        any spells that could be cast.</li>
+    <li><strong>No Re-check after Castable:</strong> Once a normal spell is deemed castable, it is assumed to remain
+        castable thereafter.</li>
 </ul>
 
 <h3>Interpreting the Key Statistics</h3>
 <ul>
     <li>
         <strong>% of Turns with 0 Dead Spells:</strong> This statistic shows the proportion of simulated turns in which
-        every spell drawn could be cast.
+        every spell drawn so far could be cast with the available mana and mana-producing spells castable on prior
+        turns.
     </li>
     <li>
         <strong>Expected Dead Spells per Turn:</strong> This is the average number of spells per turn that are “dead”
         (i.e. not castable).
     </li>
-    <li>
-        <strong>Most Desired Pip Color:</strong> The color which, if used to replace a land, most frequently resulted in
-        fewer dead spells.
-    </li>
-    <li>
-        <strong>Least Desired Pip Color:</strong> Among the colors present in your deck, the one that least improved the
-        situation when swapped in.
-    </li>
 </ul>
 
-<h3>How to Read the Charts</h3>
+<h3>Interpreting the Charts</h3>
 <ul>
-    <li>
-        <strong>Distribution of Dead Spells Chart:</strong> This bar chart displays the fraction of simulations (for
-        each turn) that resulted in a given number of dead spells, ignoring cases where there were zero dead spells.
-    </li>
-    <li>
-        <strong>Best Color to Replace a Land Chart:</strong> This line chart shows, turn by turn, the percentage of
-        simulations where switching a land to a specific color would have been most beneficial in reducing dead spells.
-    </li>
+    <li><strong>Distribution of Dead Spells:</strong> Shows how frequently each number of dead spells (1,2,3,...) occurs
+        on each turn.</li>
+    <li><strong>Dead Spells by Missing Color:</strong> Shows how many spells on average are uncastable each turn because
+        they lack specific color sources.</li>
+    <li><strong>Turns Spent Dead:</strong> For each spell, how many turns it remained in hand before first becoming
+        castable.</li>
 </ul>
 
 <h3>Simplification of Real MTG Games</h3>
@@ -86,8 +65,11 @@
     complexities of real Magic. For example:
 </p>
 <ul>
-    <li>It does not consider card abilities such as card draw, cycling, tutoring, exhaust abilities, etc.</li>
+    <li>It does not consider card abilities such as card draw, cycling, tutoring, graveyard synergies, exhaust
+        abilities, etc.</li>
+    <li>It does not account for the Arena Bo1 hand smoother, or your mulligan choices</li>
     <li>We aren't simulating anything related to gameplay (this is just about greedy use of mana).</li>
+    <li>Any spell that could be used to produce mana in the future is cast as soon as it is playable.</li>
     <li>A card is considered castable if it would have been possible to cast it given the mana sources you have, even if
         you have other competing uses for that mana.</li>
     <li>It doesn't consider the value of holding onto a card for a future turn.</li>

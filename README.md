@@ -43,6 +43,16 @@ is maintained in a google sheet [here](https://docs.google.com/spreadsheets/d/1N
 
 ### TODO
 
+* Add linting for python and html
+
+* Why do we have two simulation runs?
+
+* Move expected dead spells per color to be the first summary card
+* Add expected turns to cast first spell
+
+* Add new plot by color of expected dead spells as a horizontal bard chart
+
+* Account for hand smoother and some mulligan logic?
 
 From the latest change:
 
@@ -60,8 +70,6 @@ Other:
 * Update methodology to reflect latest changes
 
 * Have a few examples with links the user can click on to automatically populate decks for testing (also include 17lands links for each?)
-
-* Why do we have two simulation runs?
 
 * Add traceback information in the errors as well as the error message
 
