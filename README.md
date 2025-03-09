@@ -106,3 +106,18 @@ find . -type f \( -name '*.py' -o -name '*.html' -o -name '*.txt' \) -not -path 
   echo ""
 done | pbcopy
 ```
+
+### Draft prompts
+
+I have the following application:
+
+```
+```
+
+I'd like to make some changes to the `Turns each spell spent dead in hand after drawing`
+visualization. Specifically, right now for a 10 turn simulation, the x-axis is only showing `Turns Dead in Hand` from 0 (which makes sense, since it could be immediately playble) to 9, which also makes sense, as it could sit in the hand dead for 9 turns.
+
+However, it seems like we are missing a final bubble for all cases where a spell is
+still dead in hand after the simulation is complete. Does this make sense? Are
+we calculating that data? If so, can we add a final x-axis label that is "Dead at end"
+and show the counts there?
