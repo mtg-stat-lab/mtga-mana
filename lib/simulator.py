@@ -118,7 +118,7 @@ def _simulate_single_run(
                     card.draw_turn = turn
                 hand.append(card)
 
-        # Land usage limit
+        # Limit on how many lands (or sources) can be used this turn
         lands_playable = turn
 
         available_sources = persisted_mana_producers + [c for c in hand if c and c.is_land]
