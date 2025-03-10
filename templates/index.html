@@ -130,41 +130,7 @@
                     </div>
                     <div class="card-body">
                         <form id="simulation-form">
-                            <div class="mb-3">
-                                <label for="deck_size" class="form-label">Deck size</label>
-                                <input type="number" class="form-control" id="deck_size" name="deck_size" value="40"
-                                    required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="hand_size" class="form-label">Initial hand size</label>
-                                <input type="number" class="form-control" id="hand_size" name="hand_size" value="7"
-                                    required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="draws" class="form-label">Number of draw steps</label>
-                                <input type="number" class="form-control" id="draws" name="draws" value="10" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="simulations" class="form-label">Number of simulations</label>
-                                <input type="number" class="form-control" id="simulations" name="simulations"
-                                    value="200" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="seed" class="form-label">Random seed</label>
-                                <input type="number" class="form-control" id="seed" name="seed" value="42" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="on_play_or_draw" class="form-label">On the play or draw</label>
-                                <select id="on_play_or_draw" name="on_play_or_draw" class="form-select">
-                                    <option value="play" selected>Play</option>
-                                    <option value="draw">Draw</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="deck_list" class="form-label">Deck List</label>
-                                <textarea id="deck_list" name="deck_list" class="form-control"
-                                    rows="20">{% include "deck.txt" %}</textarea>
-                            </div>
+                            {% include "simulation_form.html" %}
                         </form>
                     </div>
                 </div>
