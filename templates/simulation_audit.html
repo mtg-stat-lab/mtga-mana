@@ -1,0 +1,180 @@
+<!doctype html>
+<div class="card mb-3 bg-light">
+  <div class="card-header fw-bold">Simulation audit</div>
+  <div class="card-body">
+    <p>
+      Below are up to 10 randomly selected simulation passes. Use the arrows to move between them.
+    </p>
+    <div class="d-flex align-items-center mb-2">
+      <button id="auditPrev" class="btn btn-sm btn-secondary me-2">&larr;</button>
+      <span id="auditPassLabel" class="fw-bold">Pass ?/?</span>
+      <button id="auditNext" class="btn btn-sm btn-secondary ms-2">&rarr;</button>
+    </div>
+    <div id="audit-table-container" style="overflow-x:auto;"></div>
+  </div>
+</div>
+
+<script>
+  function renderSimulationAudit(auditData) {
+    // auditData: passIndex -> { pass_index, turns_data: { turnNum: [ { uid, card_name, is_land, can_produce_mana, turn_drawn, is_castable } ] } }
+
+    const passIndices = Object.keys(auditData).map(k => parseInt(k)).sort((a, b) => a - b);
+    if (passIndices.length === 0) {
+      document.getElementById("audit-table-container").innerHTML = "<p>No audit data to show.</p>";
+      document.getElementById("auditPrev").style.display = "none";
+      document.getElementById("auditNext").style.display = "none";
+      document.getElementById("auditPassLabel").innerText = "Pass -/-";
+      return;
+    }
+
+    let currentIndex = 0;
+
+    function renderCurrentPass() {
+      const passIdx = passIndices[currentIndex];
+      const auditRecord = auditData[passIdx];
+      if (!auditRecord) {
+        document.getElementById("audit-table-container").innerHTML = "<p>Missing data for pass " + passIdx + "</p>";
+        return;
+      }
+      const turnNumbers = Object.keys(auditRecord.turns_data)
+        .map(k => parseInt(k))
+        .sort((a, b) => a - b);
+
+      // Collect all distinct card "uid" and associated info
+      let allCardsMap = new Map();
+      // For each turn, we have an array of card objects in "turns_data[turn]"
+      for (const t of turnNumbers) {
+        const arr = auditRecord.turns_data[t] || [];
+        for (const cobj of arr) {
+          if (!allCardsMap.has(cobj.uid)) {
+            allCardsMap.set(cobj.uid, {
+              uid: cobj.uid,
+              card_name: cobj.card_name,
+              is_land: cobj.is_land,
+              can_produce_mana: cobj.can_produce_mana,
+              earliest_draw_turn: cobj.turn_drawn || t
+            });
+          } else {
+            // Possibly update earliest_draw_turn
+            let existing = allCardsMap.get(cobj.uid);
+            if ((cobj.turn_drawn || t) < existing.earliest_draw_turn) {
+              existing.earliest_draw_turn = (cobj.turn_drawn || t);
+            }
+          }
+        }
+      }
+
+      // Convert Map to an array
+      let allCardsArray = Array.from(allCardsMap.values());
+
+      // Split them into sections: 
+      // 1) Non-mana spells (not land, not can_produce_mana)
+      // 2) Mana-producer spells (not land, but can_produce_mana)
+      // 3) Lands
+      let groupSpells = [];
+      let groupMana = [];
+      let groupLands = [];
+      for (const c of allCardsArray) {
+        if (c.is_land) {
+          groupLands.push(c);
+        } else if (c.can_produce_mana) {
+          groupMana.push(c);
+        } else {
+          groupSpells.push(c);
+        }
+      }
+
+      // Sort each group by earliest_draw_turn ascending, then by uid
+      function groupSorter(a, b) {
+        if (a.earliest_draw_turn !== b.earliest_draw_turn) {
+          return a.earliest_draw_turn - b.earliest_draw_turn;
+        }
+        return a.uid - b.uid;
+      }
+      groupSpells.sort(groupSorter);
+      groupMana.sort(groupSorter);
+      groupLands.sort(groupSorter);
+
+      // Combine in order: spells -> mana -> lands
+      let grouped = [];
+      if (groupSpells.length > 0) {
+        grouped.push({ label: "Spells", data: groupSpells });
+      }
+      if (groupMana.length > 0) {
+        grouped.push({ label: "Mana Spells", data: groupMana });
+      }
+      if (groupLands.length > 0) {
+        grouped.push({ label: "Lands", data: groupLands });
+      }
+
+      // Build a quick (turn -> {uid -> cobjThisTurn})
+      // so we can easily look up whether that card is in-hand or missing
+      let turnMap = {};
+      for (const t of turnNumbers) {
+        turnMap[t] = {};
+        const arr = auditRecord.turns_data[t];
+        for (const cobj of arr) {
+          turnMap[t][cobj.uid] = cobj;
+        }
+      }
+
+      // Build HTML table
+      let tableHtml = "<table class='table table-bordered' style='min-width:600px;'><thead><tr><th>Card</th>";
+      for (const t of turnNumbers) {
+        tableHtml += `<th style="text-align:center;">T${t}</th>`;
+      }
+      tableHtml += "</tr></thead><tbody>";
+
+      for (const section of grouped) {
+        // Section label row
+        tableHtml += `<tr style="background:#eee;"><td colspan="${turnNumbers.length + 1}">${section.label}</td></tr>`;
+
+        for (const cardRow of section.data) {
+          let rowLabel = cardRow.card_name;
+          // Optionally append the uid to help identify duplicates
+          // e.g. " (uid 10)"
+          rowLabel += ` (uid ${cardRow.uid})`;
+
+          tableHtml += `<tr><td>${rowLabel}</td>`;
+          for (const t of turnNumbers) {
+            const cobj = turnMap[t][cardRow.uid];
+            if (!cobj) {
+              // not in hand yet => "missing"
+              tableHtml += `<td style="text-align:center; color:#aaa;">-</td>`;
+            } else {
+              // cobj is in hand. If is_land => grey square, else circle
+              if (cobj.is_land) {
+                // land => grey square
+                tableHtml += `<td style="text-align:center;"><span style="font-size:1.2rem; color:grey;">&#9632;</span></td>`;
+              } else {
+                // a spell => green circle if castable, red circle if not
+                const color = cobj.is_castable ? "green" : "red";
+                tableHtml += `<td style="text-align:center;"><span style="font-size:1.2rem; color:${color};">&#9679;</span></td>`;
+              }
+            }
+          }
+          tableHtml += "</tr>";
+        }
+      }
+
+      tableHtml += "</tbody></table>";
+      document.getElementById("audit-table-container").innerHTML = tableHtml;
+      document.getElementById("auditPassLabel").innerText = `Pass ${currentIndex + 1}/${passIndices.length} (index ${passIdx})`;
+    }
+
+    renderCurrentPass();
+
+    document.getElementById("auditPrev").onclick = function () {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderCurrentPass();
+      }
+    };
+    document.getElementById("auditNext").onclick = function () {
+      if (currentIndex < passIndices.length - 1) {
+        currentIndex++;
+        renderCurrentPass();
+      }
+    };
+  }
+</script>
