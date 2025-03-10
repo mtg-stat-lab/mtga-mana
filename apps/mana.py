@@ -44,6 +44,7 @@ def simulate():
         deck_list_str = data["deck_list"]
         deck_dict, _ = parse_deck_list(deck_list_str, df_cards)
 
+        # Build a cost DataFrame for the cards (including generic cost) for the SpellDelayChart.
         cost_rows = []
         for card_name, (mana, count) in deck_dict.items():
             # If the mana string contains '>', extract cost portion before '>' for the cost
@@ -51,6 +52,7 @@ def simulate():
                 cost_str = mana.split(">")[0]
             else:
                 cost_str = mana
+
             uncolored, color_costs = parse_cost_string(cost_str)
             row = {"card_name": card_name, "generic": uncolored}
             for c in CANONICAL_COLORS:
