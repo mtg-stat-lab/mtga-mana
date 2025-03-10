@@ -25,7 +25,10 @@ class SimulationAuditRecord:
     """
     Stores per-turn data for a single simulation pass.
     For each turn, we keep a list of dicts describing each card in hand:
-      { uid, card_name, is_land, can_produce_mana, turn_drawn, is_castable }
+      {
+        uid, card_name, is_land, can_produce_mana, turn_drawn, is_castable,
+        cost_uncolored, cost_colors, producible_colors
+      }
     """
 
     def __init__(self, pass_index: int):
@@ -45,6 +48,11 @@ class SimulationAuditRecord:
                     "can_produce_mana": c.can_produce_mana,
                     "turn_drawn": getattr(c, "draw_turn", None),
                     "is_castable": getattr(c, "is_castable_this_turn", False),
+                    # NEW: store cost info for spells
+                    "cost_uncolored": getattr(c, "cost_uncolored", 0),
+                    "cost_colors": dict(getattr(c, "cost_colors", {})),
+                    # For mana or lands, store producible colors
+                    "producible_colors": sorted(list(getattr(c, "producible_colors", set()))),
                 }
             )
         self.turns_data[turn] = turn_list
