@@ -1,32 +1,59 @@
 <!doctype html>
-<div class="mb-3">
-    <label for="deck_size" class="form-label">Deck size</label>
-    <input type="number" class="form-control" id="deck_size" name="deck_size" value="40" required>
+<!-- Top row: Simulation Type & On the play or draw -->
+<div class="row mb-3">
+    <div class="col">
+        <label for="set" class="form-label">Set</label>
+        <select id="set" name="set" class="form-select">
+            <option value="DFT" selected>DFT</option>
+        </select>
+    </div>
+    <div class="col">
+        <label for="on_play_or_draw" class="form-label">Play or draw</label>
+        <select id="on_play_or_draw" name="on_play_or_draw" class="form-select">
+            <option value="play" selected>Play</option>
+            <option value="draw">Draw</option>
+        </select>
+    </div>
 </div>
-<div class="mb-3">
-    <label for="hand_size" class="form-label">Initial hand size</label>
-    <input type="number" class="form-control" id="hand_size" name="hand_size" value="7" required>
-</div>
-<div class="mb-3">
-    <label for="draws" class="form-label">Number of draw steps</label>
-    <input type="number" class="form-control" id="draws" name="draws" value="10" required>
-</div>
-<div class="mb-3">
-    <label for="simulations" class="form-label">Number of simulations</label>
-    <input type="number" class="form-control" id="simulations" name="simulations" value="200" required>
-</div>
-<div class="mb-3">
-    <label for="seed" class="form-label">Random seed</label>
-    <input type="number" class="form-control" id="seed" name="seed" value="42" required>
-</div>
-<div class="mb-3">
-    <label for="on_play_or_draw" class="form-label">On the play or draw</label>
-    <select id="on_play_or_draw" name="on_play_or_draw" class="form-select">
-        <option value="play" selected>Play</option>
-        <option value="draw">Draw</option>
-    </select>
-</div>
+
+<!-- Deck list textarea -->
 <div class="mb-3">
     <label for="deck_list" class="form-label">Deck List</label>
-    <textarea id="deck_list" name="deck_list" class="form-control" rows="20">{% include "deck.txt" %}</textarea>
+    <textarea id="deck_list" name="deck_list" class="form-control" rows="20">
+{% include "deck.txt" %}
+    </textarea>
+</div>
+
+<!-- Advanced section (collapsible) -->
+<div class="card mb-3">
+    <div class="card-header">
+        <a class="btn btn-link" data-bs-toggle="collapse" href="#advancedCollapse" role="button" aria-expanded="false"
+            aria-controls="advancedCollapse">
+            Advanced
+        </a>
+    </div>
+    <div class="collapse" id="advancedCollapse">
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="deck_size" class="form-label">Deck size</label>
+                <input type="number" class="form-control" id="deck_size" name="deck_size" value="40" required>
+            </div>
+            <div class="mb-3">
+                <label for="hand_size" class="form-label">Initial hand size</label>
+                <input type="number" class="form-control" id="hand_size" name="hand_size" value="7" required>
+            </div>
+            <div class="mb-3">
+                <label for="draws" class="form-label">Number of draw steps</label>
+                <input type="number" class="form-control" id="draws" name="draws" value="10" required>
+            </div>
+            <div class="mb-3">
+                <label for="simulations" class="form-label">Number of simulations</label>
+                <input type="number" class="form-control" id="simulations" name="simulations" value="200" required>
+            </div>
+            <div class="mb-3">
+                <label for="seed" class="form-label">Random seed</label>
+                <input type="number" class="form-control" id="seed" name="seed" value="42" required>
+            </div>
+        </div>
+    </div>
 </div>
