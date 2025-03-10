@@ -81,7 +81,7 @@ def simulate():
         spell_delay_chart_spec = SpellDelayChart(df_delay, df_cost).render_spec()
 
         # --- Calculate top-level stats ---
-        total_turns = (draws + 1) * simulations  # We measure each turn across all sims
+        total_turns = draws * simulations  # We measure each turn across all sims
         zero_dead_rows = df_distribution[df_distribution["dead_spells"] == 0]
         num_zero_dead = zero_dead_rows["frequency"].sum()
         pct_turns_zero_dead = num_zero_dead / total_turns if total_turns > 0 else 0
