@@ -176,6 +176,7 @@ def _simulate_single_run(
                 delay = turn - getattr(c, "draw_turn", turn)
                 delay_records.append({"card_name": c.display_name, "delay": delay})
                 persisted_castable_spells.add(c)
+                # If it produces mana, keep track of it in both sets
                 if c.can_produce_mana:
                     persisted_mana_producers.append(c)
             else:
