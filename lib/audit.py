@@ -1,12 +1,10 @@
-# ./lib/audit.py
-
 import random
-from typing import Any, Dict, List
+from typing import Any
 
 
 def pick_audit_passes(
     simulations: int, sample_size: int = 10, seed: int | None = None
-) -> List[int]:
+) -> list[int]:
     """
     Randomly pick up to `sample_size` distinct pass indices out of `simulations`.
     Done before running the simulation, to reduce memory usage.
@@ -33,9 +31,9 @@ class SimulationAuditRecord:
 
     def __init__(self, pass_index: int):
         self.pass_index = pass_index
-        self.turns_data: Dict[int, List[Dict[str, Any]]] = {}
+        self.turns_data: dict[int, list[dict[str, Any]]] = {}
 
-    def record_turn_state(self, turn: int, hand_snapshot: List[Any]):
+    def record_turn_state(self, turn: int, hand_snapshot: list[Any]):
         turn_list = []
         for c in hand_snapshot:
             if c is None:
@@ -57,7 +55,7 @@ class SimulationAuditRecord:
             )
         self.turns_data[turn] = turn_list
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "pass_index": self.pass_index,
             "turns_data": self.turns_data,
