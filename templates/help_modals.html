@@ -1,0 +1,156 @@
+<!doctype html>
+<!-- Modal for Set -->
+<div class="modal fade" id="helpSet" tabindex="-1" aria-labelledby="helpSetLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpSetLabel">Set</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Select the card set to use in the simulation.
+                </p>
+                <p>
+                    Note that the only currently supported set is DFT (Aetherdrift).
+                    I plan to add more sets in the future, but it requires manually
+                    coding the mana costs / production capabilities of each card in
+                    the set.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Play or Draw -->
+<div class="modal fade" id="helpOnPlayOrDraw" tabindex="-1" aria-labelledby="helpOnPlayOrDrawLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpOnPlayOrDrawLabel">Play or draw</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Choose whether you are on the play or on the draw. This affects the simulation's draw order and
+                available mana.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Deck List -->
+<div class="modal fade" id="helpDeckList" tabindex="-1" aria-labelledby="helpDeckListLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpDeckListLabel">Deck list</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Paste your deck list here. It should include a "Deck" section and optionally a "Sideboard" section
+                    (which will be ignored for this application).
+                </p>
+                <p>
+                    To get your deck list from 17lands, click on the "Deck Export" button from the deck view and
+                    select "Copy as plain text" and then paste it here.
+                </p>
+                <p>
+                    To get your deck list from MTG Arena, first save the deck to your decks,
+                    then hover over the deck in the "Decks" section, and click on the "Export"
+                    icon at the bottom of the screen, which will copy the deck to your clipboard
+                    so that you can paste it here.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Deck Size -->
+<div class="modal fade" id="helpDeckSize" tabindex="-1" aria-labelledby="helpDeckSizeLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpDeckSizeLabel">Deck size</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Specify the total number of cards in the deck.
+                </p>
+                <p>
+                    This is used to validate that your deck list is complete.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Initial Hand Size -->
+<div class="modal fade" id="helpHandSize" tabindex="-1" aria-labelledby="helpHandSizeLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpHandSizeLabel">Initial hand size</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Enter the number of cards drawn in your opening hand.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Number of Draw Steps -->
+<div class="modal fade" id="helpDraws" tabindex="-1" aria-labelledby="helpDrawsLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpDrawsLabel">Number of turns</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    This is the number of turns (or draw steps) to simulate beyond the initial hand.
+                </p>
+                <p>
+                    For example, if you set this to 10, the simulation will draw 10 additional cards after the initial
+                    hand. In general, your mana consumption matters the most in the early draw steps,
+                    and so 10 is a reasonable starting place. If you set this to a larger number, the
+                    simulation will take longer to run.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Number of Simulations -->
+<div class="modal fade" id="helpSimulations" tabindex="-1" aria-labelledby="helpSimulationsLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpSimulationsLabel">Number of simulations</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Set how many times the simulation will run. More simulations provide smoother statistics but take
+                longer.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Random Seed -->
+<div class="modal fade" id="helpSeed" tabindex="-1" aria-labelledby="helpSeedLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpSeedLabel">Random seed</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Enter a number to seed the random number generator. This makes simulation runs reproducible.
+            </div>
+        </div>
+    </div>
+</div>

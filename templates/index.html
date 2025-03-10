@@ -71,6 +71,14 @@
             overflow-x: auto;
             max-width: 100%;
         }
+
+        /* New styling for the help icon */
+        .help-icon {
+            color: #0d6efd;
+            background-color: white;
+            display: inline-flex;
+            margin-left: 1px;
+        }
     </style>
 </head>
 
@@ -86,15 +94,10 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <li class="nav-item me-2">
-                        <button class="btn btn-outline-light my-2 my-sm-0" type="button" data-bs-toggle="modal"
-                            data-bs-target="#aboutModal">
-                            Methodology
-                        </button>
-                    </li>
+                    <!-- About button removed from navbar -->
                     <li class="nav-item">
                         <button id="runSimulationHeader" class="btn btn-primary my-2 my-sm-0" type="button">
-                            Run simulation
+                            Run
                         </button>
                     </li>
                 </ul>
@@ -148,9 +151,23 @@
         </div>
     </div>
 
-    <footer class="fixed-bottom bg-custom text-white text-center p-2">
-        <small class="text-white-50">© 2025 Mathamagic, Inc.</small>
+    <footer class="fixed-bottom bg-custom text-white p-2">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="modal"
+                        data-bs-target="#aboutModal">
+                        Methodology
+                    </button>
+                </div>
+                <div>
+                    <small class="text-white-50">© 2025 Mathamagic, Inc.</small>
+                </div>
+            </div>
+        </div>
     </footer>
+
+    {% include "help_modals.html" %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
