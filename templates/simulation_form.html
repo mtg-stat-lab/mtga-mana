@@ -35,23 +35,48 @@
     <div class="collapse" id="advancedCollapse">
         <div class="card-body">
             <div class="mb-3">
-                <label for="deck_size" class="form-label">Deck size</label>
+                <label for="deck_size" class="form-label">
+                    Deck size
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#helpDeckSize" title="Help">
+                        <span class="badge bg-info">?</span>
+                    </a>
+                </label>
                 <input type="number" class="form-control" id="deck_size" name="deck_size" value="40" required>
             </div>
             <div class="mb-3">
-                <label for="hand_size" class="form-label">Initial hand size</label>
+                <label for="hand_size" class="form-label">
+                    Initial hand size
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#helpHandSize" title="Help">
+                        <span class="badge bg-info">?</span>
+                    </a>
+                </label>
                 <input type="number" class="form-control" id="hand_size" name="hand_size" value="7" required>
             </div>
             <div class="mb-3">
-                <label for="draws" class="form-label">Number of draw steps</label>
+                <label for="draws" class="form-label">
+                    Number of draw steps
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#helpDraws" title="Help">
+                        <span class="badge bg-info">?</span>
+                    </a>
+                </label>
                 <input type="number" class="form-control" id="draws" name="draws" value="10" required>
             </div>
             <div class="mb-3">
-                <label for="simulations" class="form-label">Number of simulations</label>
+                <label for="simulations" class="form-label">
+                    Number of simulations
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#helpSimulations" title="Help">
+                        <span class="badge bg-info">?</span>
+                    </a>
+                </label>
                 <input type="number" class="form-control" id="simulations" name="simulations" value="200" required>
             </div>
             <div class="mb-3">
-                <label for="seed" class="form-label">Random seed</label>
+                <label for="seed" class="form-label">
+                    Random seed
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#helpSeed" title="Help">
+                        <span class="badge bg-info">?</span>
+                    </a>
+                </label>
                 <input type="number" class="form-control" id="seed" name="seed" value="42" required>
             </div>
         </div>
