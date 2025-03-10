@@ -1,5 +1,3 @@
-# ./lib/deck.py
-
 import difflib
 import re
 
