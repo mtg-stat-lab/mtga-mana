@@ -2,13 +2,23 @@
 <!-- Top row: Simulation Type & On the play or draw -->
 <div class="row mb-3">
     <div class="col">
-        <label for="set" class="form-label">Set</label>
+        <label for="set" class="form-label">
+            Set
+            <a href="#" data-bs-toggle="modal" data-bs-target="#helpSet" title="Help">
+                <span class="help-icon">?</span>
+            </a>
+        </label>
         <select id="set" name="set" class="form-select">
             <option value="DFT" selected>DFT</option>
         </select>
     </div>
     <div class="col">
-        <label for="on_play_or_draw" class="form-label">Play or draw</label>
+        <label for="on_play_or_draw" class="form-label">
+            Play or draw
+            <a href="#" data-bs-toggle="modal" data-bs-target="#helpOnPlayOrDraw" title="Help">
+                <span class="help-icon">?</span>
+            </a>
+        </label>
         <select id="on_play_or_draw" name="on_play_or_draw" class="form-select">
             <option value="play" selected>Play</option>
             <option value="draw">Draw</option>
@@ -18,7 +28,12 @@
 
 <!-- Deck list textarea -->
 <div class="mb-3">
-    <label for="deck_list" class="form-label">Deck List</label>
+    <label for="deck_list" class="form-label">
+        Deck List
+        <a href="#" data-bs-toggle="modal" data-bs-target="#helpDeckList" title="Help">
+            <span class="help-icon">?</span>
+        </a>
+    </label>
     <textarea id="deck_list" name="deck_list" class="form-control" rows="20">
 {% include "deck.txt" %}
     </textarea>
@@ -38,7 +53,7 @@
                 <label for="deck_size" class="form-label">
                     Deck size
                     <a href="#" data-bs-toggle="modal" data-bs-target="#helpDeckSize" title="Help">
-                        <span class="badge bg-info">?</span>
+                        <span class="help-icon">?</span>
                     </a>
                 </label>
                 <input type="number" class="form-control" id="deck_size" name="deck_size" value="40" required>
@@ -47,7 +62,7 @@
                 <label for="hand_size" class="form-label">
                     Initial hand size
                     <a href="#" data-bs-toggle="modal" data-bs-target="#helpHandSize" title="Help">
-                        <span class="badge bg-info">?</span>
+                        <span class="help-icon">?</span>
                     </a>
                 </label>
                 <input type="number" class="form-control" id="hand_size" name="hand_size" value="7" required>
@@ -56,7 +71,7 @@
                 <label for="draws" class="form-label">
                     Number of draw steps
                     <a href="#" data-bs-toggle="modal" data-bs-target="#helpDraws" title="Help">
-                        <span class="badge bg-info">?</span>
+                        <span class="help-icon">?</span>
                     </a>
                 </label>
                 <input type="number" class="form-control" id="draws" name="draws" value="10" required>
@@ -65,7 +80,7 @@
                 <label for="simulations" class="form-label">
                     Number of simulations
                     <a href="#" data-bs-toggle="modal" data-bs-target="#helpSimulations" title="Help">
-                        <span class="badge bg-info">?</span>
+                        <span class="help-icon">?</span>
                     </a>
                 </label>
                 <input type="number" class="form-control" id="simulations" name="simulations" value="200" required>
@@ -74,7 +89,7 @@
                 <label for="seed" class="form-label">
                     Random seed
                     <a href="#" data-bs-toggle="modal" data-bs-target="#helpSeed" title="Help">
-                        <span class="badge bg-info">?</span>
+                        <span class="help-icon">?</span>
                     </a>
                 </label>
                 <input type="number" class="form-control" id="seed" name="seed" value="42" required>
