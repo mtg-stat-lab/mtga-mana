@@ -4,6 +4,7 @@ from collections import Counter
 
 import pandas as pd
 
+from .audit import SimulationAuditRecord
 from .cost_parser import CANONICAL_COLORS
 from .models import Card, Deck
 
@@ -18,9 +19,15 @@ def build_deck_from_dict(deck_dict: dict[str, tuple[str, int]], total_deck_size:
     :return: A Deck instance.
     """
     cards: list[Card] = []
+    uid_counter = 0  # CHANGED: to assign a unique uid to each card instance
+
     for display_name, (mana_str, qty) in deck_dict.items():
         for _ in range(qty):
-            cards.append(Card(mana_str, display_name=display_name))
+            c = Card(mana_str, display_name=display_name)
+            c.uid = uid_counter  # CHANGED
+            uid_counter += 1
+            cards.append(c)
+
     return Deck(cards, total_deck_size)
 
 
@@ -79,9 +86,11 @@ def _simulate_single_run(
     initial_hand_size: int,
     draws: int,
     on_play: bool,
+    record_audit: bool = False,
 ) -> tuple[list[list[int]], list[list[dict[str, int]]], list[dict[str, int]]]:
     """
     Perform one run of the simulation (i.e., one set of draws across N turns).
+    Returns (dead_counts_per_turn, missing_color_tallies, delay_records, audit_record or None).
 
     :param deck_dict: The deck specification as {card_name: (mana_string, quantity)}.
     :param total_deck_size: Total size of the deck.
@@ -92,6 +101,7 @@ def _simulate_single_run(
         - dead_counts_per_turn: A list of lists of integer dead-spell counts.
         - missing_color_tallies: A list of lists of dicts that track color shortfalls per turn.
         - delay_records: A list of dicts, each with {"card_name": ..., "delay": ...}.
+        - audit_record or None: An audit record if this run was selected for auditing.
     """
     deck = build_deck_from_dict(deck_dict, total_deck_size)
     deck.shuffle()
@@ -100,6 +110,8 @@ def _simulate_single_run(
     dead_counts_per_turn: list[list[int]] = [[] for _ in range(draws)]
     missing_color_tallies: list[list[dict[str, int]]] = [[] for _ in range(draws)]
     delay_records: list[dict[str, int]] = []
+
+    audit_record = SimulationAuditRecord(pass_index=-1) if record_audit else None
 
     # Draw initial hand
     for _ in range(initial_hand_size):
@@ -113,7 +125,7 @@ def _simulate_single_run(
     persisted_castable_spells: set[Card] = set()
 
     for turn in range(1, draws + 1):
-        # Extra draw if turn=1 and on the draw
+        # Extra draw if turn=1 and not on_play
         if turn == 1 and not on_play:
             if deck.cards:
                 card = deck.cards.pop(0)
@@ -136,30 +148,37 @@ def _simulate_single_run(
         dead_count = 0
         missing_color_counts = {col: 0 for col in CANONICAL_COLORS}
 
+        # CHANGED: Once a spell is in persisted_castable_spells, ensure it's castable this turn, too
+        for c in hand:
+            if c is not None:
+                if (c in persisted_castable_spells) or (c in persisted_mana_producers) or c.is_land:
+                    c.is_castable_this_turn = True
+                else:
+                    c.is_castable_this_turn = False
+
         for c in hand:
             if c is None:
                 continue
 
-            # ————— NEW LOGIC: skip if already castable or in persisted mana list —————
-            if c in persisted_castable_spells or c in persisted_mana_producers or c.is_land:
-                # Already cast or is a land, so definitely not “dead” now
+            # If it’s already land or known castable, skip the dead-check
+            if c.is_land or c.is_castable_this_turn:
                 continue
 
+            # Otherwise, see if we can newly cast it:
             total_cost = c.cost_uncolored + sum(c.cost_colors.values())
             if total_cost > lands_playable:
-                # Not enough total mana
                 dead_count += 1
                 continue
 
             if _can_cast_with_sources(c, available_sources, lands_playable):
-                # The spell becomes castable this turn
+                # The spell becomes castable
+                c.is_castable_this_turn = True
                 delay = turn - getattr(c, "draw_turn", turn)
                 delay_records.append({"card_name": c.display_name, "delay": delay})
-
+                persisted_castable_spells.add(c)
                 # If it produces mana, keep track of it in both sets
                 if c.can_produce_mana:
                     persisted_mana_producers.append(c)
-                persisted_castable_spells.add(c)
             else:
                 # Spell is dead for this turn
                 dead_count += 1
@@ -177,13 +196,15 @@ def _simulate_single_run(
         dead_counts_per_turn[turn - 1].append(dead_count)
         missing_color_tallies[turn - 1].append(missing_color_counts)
 
-    # After the final turn:
+        if record_audit and audit_record:
+            audit_record.record_turn_state(turn, hand)
+
+    # After final turn, for spells never castable
     for c in hand:
         if c is not None and not c.is_land and c not in persisted_castable_spells:
-            # Still not castable on the 10th turn
             delay_records.append({"card_name": c.display_name, "delay": draws})
 
-    return dead_counts_per_turn, missing_color_tallies, delay_records
+    return dead_counts_per_turn, missing_color_tallies, delay_records, audit_record
 
 
 def _build_summary_tables(
@@ -215,7 +236,6 @@ def _build_summary_tables(
         all_dead_values = []
         for dlist in turn_dead_lists:
             all_dead_values.extend(dlist)  # but we actually have only one value per run anyway
-
         total_sims = float(len(all_dead_values))
         count_ge1 = sum(1 for d in all_dead_values if d >= 1)
         p_dead = count_ge1 / total_sims if total_sims > 0 else 0
@@ -287,18 +307,20 @@ def run_simulation_all(
     simulations: int = 100_000,
     seed: int | None = None,
     on_play: bool = True,
+    audit_pass_indices: list[int] | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
-    A unified simulation that accomplishes two major goals:
-      1) Dead-spell counts & missing-color tallies each turn.
-      2) Spell delay tracking (how many turns each spell spends uncastable).
+    Unified simulation:
+     - Count dead spells & color shortfalls
+     - Track delay (turns spent uncastable)
+     - Optionally collect audit data for certain pass indices
 
-    Returns three DataFrames:
+    Returns four DataFrames:
       - df_summary: aggregated stats per turn (p_dead and average missing color).
       - df_distribution: distribution of dead-spell counts per turn (e.g., 0,1,2,...).
       - df_delay: (card_name, delay) for each card that eventually became castable,
                   representing how many turns it spent in hand before first becoming castable.
-
+      - df_audit: detailed per-turn data for a subset of simulation passes.
     :param deck_dict: A dict mapping card_name -> (mana_string, quantity).
     :param total_deck_size: The total number of cards in the deck (including filler if needed).
     :param initial_hand_size: How many cards are drawn in your opening hand.
@@ -306,7 +328,7 @@ def run_simulation_all(
     :param simulations: How many times to run the entire simulation.
     :param seed: Optional RNG seed for reproducibility.
     :param on_play: If True, simulates "on the play"; if False, "on the draw".
-    :return: (df_summary, df_distribution, df_delay)
+    :return: (df_summary, df_distribution, df_delay, df_audit)
     """
     if seed is not None:
         random.seed(seed)
@@ -316,14 +338,29 @@ def run_simulation_all(
     missing_color_runs: list[list[list[dict[str, int]]]] = []
     delay_records_all: list[list[dict[str, int]]] = []
 
-    for _ in range(simulations):
-        dead_counts_per_turn, missing_color_tallies, delay_records = _simulate_single_run(
+    audit_data = {}
+
+    for pass_idx in range(simulations):
+        record_audit = audit_pass_indices is not None and pass_idx in audit_pass_indices
+
+        (
+            dead_counts_per_turn,
+            missing_color_tallies,
+            delay_records,
+            audit_record,
+        ) = _simulate_single_run(
             deck_dict=deck_dict,
             total_deck_size=total_deck_size,
             initial_hand_size=initial_hand_size,
             draws=draws,
             on_play=on_play,
+            record_audit=record_audit,
         )
+
+        if record_audit and audit_record is not None:
+            audit_record.pass_index = pass_idx
+            audit_data[pass_idx] = audit_record.to_dict()
+
         dead_counts_runs.append(dead_counts_per_turn)
         missing_color_runs.append(missing_color_tallies)
         delay_records_all.append(delay_records)
@@ -332,4 +369,5 @@ def run_simulation_all(
     df_summary, df_distribution, df_delay = _build_summary_tables(
         dead_counts_runs, missing_color_runs, delay_records_all, draws
     )
-    return df_summary, df_distribution, df_delay
+
+    return df_summary, df_distribution, df_delay, audit_data

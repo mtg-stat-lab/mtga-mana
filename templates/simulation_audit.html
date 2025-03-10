@@ -1,0 +1,240 @@
+<!doctype html>
+<div class="card mb-3 bg-light">
+  <div class="card-header fw-bold">Simulation audit</div>
+  <div class="card-body">
+    <p>
+      Below are up to 10 randomly selected simulation passes. Use the arrows to move between them.
+    </p>
+    <div class="d-flex align-items-center mb-2">
+      <button id="auditPrev" class="btn btn-sm btn-secondary me-2">&larr;</button>
+      <span id="auditPassLabel" class="fw-bold">Pass ?/?</span>
+      <button id="auditNext" class="btn btn-sm btn-secondary ms-2">&rarr;</button>
+    </div>
+    <div id="audit-table-container" style="overflow-x:auto;"></div>
+  </div>
+</div>
+
+<script>
+  /**
+   * Build a compact string (like "2UB") from cost_uncolored + cost_colors.
+   */
+  function buildCostString(costUncolored, costColors) {
+    const colorOrder = ["W", "U", "B", "R", "G"];
+    let result = "";
+
+    if (costUncolored > 0) {
+      result += costUncolored;
+    }
+    for (const c of colorOrder) {
+      const count = costColors[c] || 0;
+      for (let i = 0; i < count; i++) {
+        result += c;
+      }
+    }
+    return result || "0";
+  }
+
+  /**
+   * Build a series of colored circles (e.g. mana production).
+   * Example: if produceColors = ["B","R"], returns black & red circles side-by-side.
+   */
+  function buildProductionCircles(produceColors) {
+    if (!produceColors || produceColors.length === 0) {
+      return "<span style='color:#aaa;'>n/a</span>";
+    }
+    // Map single letter color to actual CSS color:
+    const colorMap = {
+      "W": "grey",
+      "U": "blue",
+      "B": "black",
+      "R": "red",
+      "G": "green"
+    };
+    let html = "";
+    for (const c of produceColors) {
+      const css = colorMap[c] || "silver";
+      html += `<span style="font-size:1.2rem; color:${css}; margin-right:3px;">&#9679;</span>`;
+    }
+    return html;
+  }
+
+  function renderSimulationAudit(auditData) {
+    // auditData: passIndex -> { pass_index, turns_data: { turnNum: [ cardObjects... ] } }
+
+    const passIndices = Object.keys(auditData).map(k => parseInt(k)).sort((a, b) => a - b);
+    if (passIndices.length === 0) {
+      document.getElementById("audit-table-container").innerHTML = "<p>No audit data to show.</p>";
+      document.getElementById("auditPrev").style.display = "none";
+      document.getElementById("auditNext").style.display = "none";
+      document.getElementById("auditPassLabel").innerText = "Pass -/-";
+      return;
+    }
+
+    let currentIndex = 0;
+
+    function renderCurrentPass() {
+      const passIdx = passIndices[currentIndex];
+      const auditRecord = auditData[passIdx];
+      if (!auditRecord) {
+        document.getElementById("audit-table-container").innerHTML = "<p>Missing data for pass " + passIdx + "</p>";
+        return;
+      }
+
+      const turnNumbers = Object.keys(auditRecord.turns_data).map(k => parseInt(k)).sort((a, b) => a - b);
+
+      // Collect all distinct card "uid" & info across all turns
+      let allCardsMap = new Map();
+      for (const t of turnNumbers) {
+        const arr = auditRecord.turns_data[t] || [];
+        for (const cobj of arr) {
+          if (!allCardsMap.has(cobj.uid)) {
+            allCardsMap.set(cobj.uid, {
+              uid: cobj.uid,
+              card_name: cobj.card_name,
+              is_land: cobj.is_land,
+              can_produce_mana: cobj.can_produce_mana,
+              earliest_draw_turn: cobj.turn_drawn || t,
+              cost_uncolored: cobj.cost_uncolored,
+              cost_colors: cobj.cost_colors,
+              producible_colors: cobj.producible_colors
+            });
+          } else {
+            // Possibly update earliest draw
+            let existing = allCardsMap.get(cobj.uid);
+            if ((cobj.turn_drawn || t) < existing.earliest_draw_turn) {
+              existing.earliest_draw_turn = cobj.turn_drawn || t;
+            }
+          }
+        }
+      }
+      let allCardsArray = Array.from(allCardsMap.values());
+
+      // Group them:
+      let spells = [];
+      let manaSpells = [];
+      let lands = [];
+      for (const c of allCardsArray) {
+        if (c.is_land) {
+          lands.push(c);
+        } else if (c.can_produce_mana) {
+          manaSpells.push(c);
+        } else {
+          spells.push(c);
+        }
+      }
+
+      // Sort each group by earliest_draw_turn, then by uid
+      function groupSorter(a, b) {
+        if (a.earliest_draw_turn !== b.earliest_draw_turn) {
+          return a.earliest_draw_turn - b.earliest_draw_turn;
+        }
+        return a.uid - b.uid;
+      }
+      spells.sort(groupSorter);
+      manaSpells.sort(groupSorter);
+      lands.sort(groupSorter);
+
+      // Combine into [ { label: "Spells", data: spells }, ... ] only if non-empty
+      let grouped = [];
+      if (spells.length > 0) grouped.push({ label: "Spells", data: spells });
+      if (manaSpells.length > 0) grouped.push({ label: "Mana", data: manaSpells });
+      if (lands.length > 0) grouped.push({ label: "Lands", data: lands });
+
+      // Build turnMap => turnMap[t][uid] = cobj
+      let turnMap = {};
+      for (const t of turnNumbers) {
+        turnMap[t] = {};
+        const arr = auditRecord.turns_data[t];
+        for (const cobj of arr) {
+          turnMap[t][cobj.uid] = cobj;
+        }
+      }
+
+      // Build table
+      let tableHtml = "<table class='table table-bordered table-sm' style='min-width:800px;'>";
+      // Build header:  Section | Card | Cost/Prod | T1 | T2 | ...
+      tableHtml += "<thead><tr>";
+      tableHtml += "<th style='width:50px;'>Section</th>";
+      tableHtml += "<th>Card</th>";
+      tableHtml += "<th>Cost/Prod</th>";
+      for (const t of turnNumbers) {
+        tableHtml += `<th style="text-align:center;">T${t}</th>`;
+      }
+      tableHtml += "</tr></thead><tbody>";
+
+      // For each group, we row-span the left column
+      for (const group of grouped) {
+        const groupSize = group.data.length;
+        let rowSpanDone = false;
+
+        group.data.forEach((card, idx) => {
+          tableHtml += "<tr>";
+          // If it's the first row in this group, print the group label with rowspan
+          if (!rowSpanDone) {
+            tableHtml += `<td rowspan="${groupSize}" style="vertical-align:top; background:#f3f3f3;">${group.label}</td>`;
+            rowSpanDone = true;
+          }
+
+          // The card name
+          let rowLabel = `${card.card_name} (uid ${card.uid})`;
+          tableHtml += `<td>${rowLabel}</td>`;
+
+          // Cost/Prod column
+          if (!card.is_land && !card.can_produce_mana) {
+            // Normal spell => show e.g. "2UB"
+            const costStr = buildCostString(card.cost_uncolored, card.cost_colors);
+            tableHtml += `<td>${costStr}</td>`;
+          } else if (card.can_produce_mana || card.is_land) {
+            // Show production circles
+            let circlesHtml = buildProductionCircles(card.producible_colors);
+            tableHtml += `<td>${circlesHtml}</td>`;
+          } else {
+            // Fallback
+            tableHtml += "<td>?</td>";
+          }
+
+          // T1..Tn columns
+          for (const t of turnNumbers) {
+            const cobj = turnMap[t][card.uid];
+            if (!cobj) {
+              // Not in hand => dash
+              tableHtml += `<td style="text-align:center; color:#aaa;">-</td>`;
+            } else {
+              // If it's a land or mana, show production circles
+              if (cobj.is_land || cobj.can_produce_mana) {
+                tableHtml += `<td style="text-align:center;">${buildProductionCircles(cobj.producible_colors)}</td>`;
+              } else {
+                // A normal spell => ✅ or ❌
+                if (cobj.is_castable) {
+                  tableHtml += `<td style="text-align:center; color:green;">✅</td>`;
+                } else {
+                  tableHtml += `<td style="text-align:center; color:red;">❌</td>`;
+                }
+              }
+            }
+          }
+          tableHtml += "</tr>";
+        });
+      }
+
+      tableHtml += "</tbody></table>";
+      document.getElementById("audit-table-container").innerHTML = tableHtml;
+      document.getElementById("auditPassLabel").innerText = `Pass ${currentIndex + 1}/${passIndices.length} (index ${passIdx})`;
+    }
+
+    renderCurrentPass();
+
+    document.getElementById("auditPrev").onclick = function () {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderCurrentPass();
+      }
+    };
+    document.getElementById("auditNext").onclick = function () {
+      if (currentIndex < passIndices.length - 1) {
+        currentIndex++;
+        renderCurrentPass();
+      }
+    };
+  }
+</script>

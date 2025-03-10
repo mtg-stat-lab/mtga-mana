@@ -94,7 +94,6 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <!-- About button removed from navbar -->
                     <li class="nav-item">
                         <button id="runSimulationHeader" class="btn btn-primary my-2 my-sm-0" type="button">
                             Run
@@ -168,6 +167,7 @@
     </footer>
 
     {% include "help_modals.html" %}
+    {% include "simulation_audit.html" %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -200,73 +200,80 @@
                 .then(json => {
                     if (json.error) {
                         resultsContainer.innerHTML = `
-                      <div class="alert alert-danger" role="alert">
-                        <strong>Error:</strong> ${json.error}
-                      </div>
-                    `;
+                          <div class="alert alert-danger" role="alert">
+                            <strong>Error:</strong> ${json.error}
+                          </div>
+                        `;
                     } else {
                         const stats = json.stats;
                         const pctZeroDead = (stats.pct_turns_zero_dead * 100).toFixed(2);
                         const expDead = stats.expected_dead_per_turn.toFixed(2);
 
                         const statCardsHTML = `
-                      <div class="row row-cols-2 row-cols-md-2 g-2">
-                        <div class="col">
-                          <div class="card text-center border-0 bg-light">
-                            <div class="card-body p-2">
-                              <h6 class="card-title mb-1" style="font-size:0.85rem;">% of turns with 0 dead spells</h6>
-                              <p class="card-text fw-bold">${pctZeroDead}%</p>
+                          <div class="row row-cols-2 row-cols-md-2 g-2">
+                            <div class="col">
+                              <div class="card text-center border-0 bg-light">
+                                <div class="card-body p-2">
+                                  <h6 class="card-title mb-1" style="font-size:0.85rem;">% of turns with 0 dead spells</h6>
+                                  <p class="card-text fw-bold">${pctZeroDead}%</p>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col">
+                              <div class="card text-center border-0 bg-light">
+                                <div class="card-body p-2">
+                                  <h6 class="card-title mb-1" style="font-size:0.85rem;">Expected dead spells per turn</h6>
+                                  <p class="card-text fw-bold">${expDead}</p>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div class="col">
-                          <div class="card text-center border-0 bg-light">
-                            <div class="card-body p-2">
-                              <h6 class="card-title mb-1" style="font-size:0.85rem;">Expected dead spells per turn</h6>
-                              <p class="card-text fw-bold">${expDead}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    `;
+                        `;
 
                         resultsContainer.innerHTML = `
-                      <div class="card mb-3 bg-light">
-                        <div class="card-header fw-bold">Statistics</div>
-                        <div class="card-body">
-                          ${statCardsHTML}
-                        </div>
-                      </div>
-                      <div class="row">
-                        <div class="left-chart-panel" style="width: var(--left-chart-percentage);">
                           <div class="card mb-3 bg-light">
-                            <div class="card-header fw-bold">Distribution of dead spells</div>
-                            <div class="card-body" id="distribution-chart"></div>
+                            <div class="card-header fw-bold">Statistics</div>
+                            <div class="card-body">
+                              ${statCardsHTML}
+                            </div>
                           </div>
-                          <div class="card mb-3 bg-light">
-                            <div class="card-header fw-bold">Dead spells by missing color</div>
-                            <div class="card-body" id="missing-color-chart"></div>
+                          <div class="row">
+                            <div class="left-chart-panel" style="width: var(--left-chart-percentage);">
+                              <div class="card mb-3 bg-light">
+                                <div class="card-header fw-bold">Distribution of dead spells</div>
+                                <div class="card-body" id="distribution-chart"></div>
+                              </div>
+                              <div class="card mb-3 bg-light">
+                                <div class="card-header fw-bold">Dead spells by missing color</div>
+                                <div class="card-body" id="missing-color-chart"></div>
+                              </div>
+                            </div>
+                            <div class="right-chart-panel" style="width: var(--right-chart-percentage);">
+                              <div class="card mb-3 bg-light">
+                                <div class="card-header fw-bold">Turns each spell spent dead in hand after drawing</div>
+                                <div class="card-body" id="spell-delay-chart"></div>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                        <div class="right-chart-panel" style="width: var(--right-chart-percentage);">
-                          <div class="card mb-3 bg-light">
-                            <div class="card-header fw-bold">Turns each spell spent dead in hand after drawing</div>
-                            <div class="card-body" id="spell-delay-chart"></div>
-                          </div>
-                        </div>
-                      </div>
-                    `;
+                        `;
+
+                        // Render Vega charts
                         vegaEmbed('#distribution-chart', json.dist_chart_spec);
                         vegaEmbed('#missing-color-chart', json.missing_color_chart_spec);
+                        vegaEmbed('#spell_delay_chart', json.spell_delay_chart_spec); // NOTE: small correction in ID
                         vegaEmbed('#spell-delay-chart', json.spell_delay_chart_spec);
+
+                        // Render the simulation audit
+                        const auditData = json.audit_data || {};
+                        renderSimulationAudit(auditData);
                     }
                 })
                 .catch(error => {
                     resultsContainer.innerHTML = `
-                  <div class="alert alert-danger" role="alert">
-                    <strong>Error:</strong> ${error}
-                  </div>
-                `;
+                      <div class="alert alert-danger" role="alert">
+                        <strong>Error:</strong> ${error}
+                      </div>
+                    `;
                 });
         }
 
